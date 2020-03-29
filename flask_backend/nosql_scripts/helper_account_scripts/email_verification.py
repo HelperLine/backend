@@ -24,7 +24,7 @@ def send_verification_mail(email, verification_token):
         return status("email sending failed")
 
 
-def confirm_email(verification_token):
+def verify_email(verification_token):
     record = email_tokens_collection.find_one({"token": verification_token})
     if record is not None:
         helper_accounts_collection.update_one({"_id": record["helper_id"]}, {"$set": {"email_verified": True}})
@@ -32,12 +32,17 @@ def confirm_email(verification_token):
 
 
 def trigger_email_verification(helper_id, email):
+    # this function can be used for the initial send as well as resending
+
     # Generate new token
     verification_token = support_functions.generate_random_key(length=64)
 
     # Create new token record
     record = {"helper_id": helper_id, "token": verification_token}
-    operations = [DeleteMany({"helper_id": helper_id}), InsertOne(record)]
+    operations = [
+        DeleteMany({"helper_id": helper_id}),
+        InsertOne(record)
+    ]
     email_tokens_collection.bulk_write(operations, ordered=True)
 
     # Trigger token-email
