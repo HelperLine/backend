@@ -28,4 +28,4 @@ def hash_password(password):
 
 
 def check_password(password, hashed_password):
-    return bcrypt.check_password_hash(hashed_password, password)
+    return bcrypt.check_password_hash(hashed_password, password + BCRYPT_SALT)

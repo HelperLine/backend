@@ -73,37 +73,43 @@ def modify_helper_account(email, **kwargs):
     else:
         new_country = helper_account["country"]
 
+    if (new_email != helper_account["email"]) or (new_password != helper_account["hashed_password"]) or \
+            (new_zip_code != helper_account["zip_code"]) or (new_country != helper_account["country"]):
 
-    verification_status = verify_register_form.verify_register_form(new_email, new_password, new_zip_code, new_country)
+        verification_status = verify_register_form.verify_register_form(
+            new_email, new_password, new_zip_code, new_country, new_account=False)
 
-    if verification_status["status"] == "ok":
-        modified_helper_account = {
-            "email": new_email,
-            "hashed_password": new_password,
-            "zip_code": new_zip_code,
-            "country": new_country
-        }
+        if verification_status["status"] == "ok":
+            modified_helper_account = {
+                "email": new_email,
+                "hashed_password": new_password,
+                "zip_code": new_zip_code,
+                "country": new_country
+            }
 
-        # Update zip_code_traffic_database id needed
-        if new_zip_code != helper_account["zip_code"]:
-            operations = [
-                UpdateOne({"zip_code": helper_account["zip_code"]}, {'$pull': {'helpers': helper_account["_id"]}}),
-                UpdateOne({"zip_code": new_zip_code}, {'$push': {'helpers': helper_account["_id"]}})
-            ]
-            zip_code_helpers_collection.bulk_write(operations, ordered=False)
+            # Update zip_code_traffic_database id needed
+            if new_zip_code != helper_account["zip_code"]:
+                operations = [
+                    UpdateOne({"zip_code": helper_account["zip_code"]}, {'$pull': {'helpers': helper_account["_id"]}}),
+                    UpdateOne({"zip_code": new_zip_code}, {'$push': {'helpers': helper_account["_id"]}})
+                ]
+                zip_code_helpers_collection.bulk_write(operations, ordered=False)
 
-        helper_accounts_collection.update_one({"email": email}, {"$set": modified_helper_account})
+            helper_accounts_collection.update_one({"email": email}, {"$set": modified_helper_account})
 
-        if email != new_email:
-            helper_api_keys_collection.update_one({"email": email}, {"$set": {"email": new_email}})
-            email_tokens_collection.delete_one({"email": email})
-            email_verification.trigger_email_verification(helper_account["_id"], new_email)
+            if email != new_email:
+                helper_api_keys_collection.update_one({"email": email}, {"$set": {"email": new_email}})
+                email_tokens_collection.delete_one({"email": email})
+                email_verification.trigger_email_verification(helper_account["_id"], new_email)
 
-        # api_key remains the same
-        return status("ok", email=new_email)
+            # api_key remains the same
+            return status("ok", email=new_email)
+
+        else:
+            return verification_status
 
     else:
-        return verification_status
+        return status("ok", email=new_email)
 
 
 

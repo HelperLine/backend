@@ -22,9 +22,9 @@ class RESTAccount(Resource):
         helper_account = helper_accounts_collection.find_one({"email": params_dict["email"]})
 
         account_dict = {
-            "email_verified": helper_accounts_collection["email_verified"],
-            "zip_code": helper_accounts_collection["zip_code"],
-            "country": helper_accounts_collection["country"],
+            "email_verified": helper_account["email_verified"],
+            "zip_code": helper_account["zip_code"],
+            "country": helper_account["country"],
         }
         return status("ok", account=account_dict), 200
 
@@ -51,7 +51,7 @@ class RESTAccount(Resource):
         if api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])["status"] != "ok":
             return {"status": "invalid request"}
 
-        modify_response = helper_account_scripts.modify_helper_account(params_dict["email"], **params_dict)
+        modify_response = helper_account_scripts.modify_helper_account(**params_dict)
 
         return modify_response
 

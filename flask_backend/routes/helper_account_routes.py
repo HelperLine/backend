@@ -15,28 +15,31 @@ def backend_login():
     # Artificial delay to further prevent brute forcing
     time.sleep(0.05)
 
+    print(params_dict)
+
     email = params_dict["email"]
     password = params_dict["password"]
     api_key = params_dict["api_key"]
 
     # Initial login
     if email is not None and password is not None:
-        login_result_dict = api_authentication.helper_login_password(params_dict["email"], params_dict["password"])
+        login_result_dict = api_authentication.helper_login_password(email, password)
 
     # Automatic re-login from webapp
-    if email is not None and api_key is not None:
+    elif email is not None and api_key is not None:
         # TODO: Generate new API Key for every login request in production!
-        login_result_dict = api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])
+        login_result_dict = api_authentication.helper_login_api_key(email, api_key)
 
     else:
         login_result_dict = status("missing parameter email/password/api_key")
 
     if login_result_dict["status"] == "ok":
-        helper_accounts_collection.find_one({"email": email})
+        helper_account = helper_accounts_collection.find_one({"email": email})
+
         account_dict = {
-            "email_verified": helper_accounts_collection["email_verified"],
-            "zip_code": helper_accounts_collection["zip_code"],
-            "country": helper_accounts_collection["country"],
+            "email_verified": helper_account["email_verified"],
+            "zip_code": helper_account["zip_code"],
+            "country": helper_account["country"],
         }
 
         # TODO: Add real calls dict

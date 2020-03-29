@@ -53,7 +53,7 @@ def verify_country_format(country):
     return country in ["Germany"]
 
 
-def verify_register_form(email, password, zip_code, country):
+def verify_register_form(email, password, zip_code, country, new_account=True):
     if not verify_email_format(email):
         return status("email format invalid")
 
@@ -67,7 +67,8 @@ def verify_register_form(email, password, zip_code, country):
     if not verify_country_format(country):
         return status("country invalid")
 
-    if helper_accounts_collection.find_one({"email": email}) is not None:
+
+    if new_account and helper_accounts_collection.find_one({"email": email}) is not None:
         return status("email already taken")
 
     return status("ok")
