@@ -1,45 +1,60 @@
 from flask import Flask
 import os
 
-from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_restful import Api
 
 try:
+    from flask_backend.secrets import MONGODB_WRITE_CONNECTION_STRING
     from flask_backend.secrets import SECRET_KEY, BCRYPT_SALT, GCP_API_KEY, SENDGRID_API_KEY, BACKEND_URL
 except Exception:
     # The secrets file will not be included in any repository and will
     # never leave this computer In production these values will be set
     # by environment variables
-    pass
+
+    MONGODB_WRITE_CONNECTION_STRING = os.getenv("MONGODB_WRITE_CONNECTION_STRING")
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    BCRYPT_SALT = os.getenv("BCRYPT_SALT")
+    GCP_API_KEY = os.getenv("GCP_API_KEY")
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    BACKEND_URL = os.getenv("BACKEND_URL")
+
+import os
+import certifi
+from pymongo import MongoClient
+
+# Set correct SSL certificate
+os.environ["SSL_CERT_FILE"] = certifi.where()
+
+
+# Connect to database and collections
+client = MongoClient(MONGODB_WRITE_CONNECTION_STRING)
+
+account_database = client.get_database("account_database")
+admin_accounts_collection = account_database["admin_accounts"]
+caller_accounts_collection = account_database["caller_accounts"]
+helper_accounts_collection = account_database["helper_accounts"]
+
+call_database = client.get_database("call_database")
+calls_collection = call_database["calls"]
+agent_behavior_collection = call_database["agent_behavior"]
+
+zip_code_traffic_database = client.get_database("zip_code_traffic_database")
+zip_code_helpers_collection = zip_code_traffic_database["zip_code_helpers"]
+zip_code_callers_collection = zip_code_traffic_database["zip_code_callers"]
+zip_code_calls_collection = zip_code_traffic_database["zip_code_calls"]
+
+zip_code_dataset = client.get_database("zip_code_dataset")
+zip_codes_collection = zip_code_dataset["zip_codes_germany"]
 
 
 
 app = Flask(__name__)
 
-# Cookies (e.g. admin login) are stored for 7 days
+# Cookies (e.g. user/admin login) are stored for 7 days
 app.config['REMEMBER_COOKIE_DURATION'] = 60 * 60 * 24 * 7
-
-
-
-
-if os.getenv("SECRET_KEY") is not None:
-    app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-else:
-    app.config['SECRET_KEY'] = SECRET_KEY
-
-if os.getenv("BCRYPT_SALT") is not None:
-    BCRYPT_SALT = os.getenv("BCRYPT_SALT")
-
-if os.getenv("GCP_API_KEY") is not None:
-    GCP_API_KEY = os.getenv("GCP_API_KEY")
-
-if os.getenv("SENDGRID_API_KEY") is not None:
-    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-
-if os.getenv("BACKEND_URL") is not None:
-    BACKEND_URL = os.getenv("BACKEND_URL")
+app.config['SECRET_KEY'] = SECRET_KEY
 
 
 
