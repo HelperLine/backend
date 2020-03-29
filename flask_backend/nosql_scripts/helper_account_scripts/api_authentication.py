@@ -32,22 +32,24 @@ def delete_api_key(email):
 def helper_login_password(email, password):
     helper_account = helper_accounts_collection.find_one({"email": email})
 
-    if support_functions.check_password(password, helper_account["hashed_password"]):
-        api_key = create_new_api_key(email)
-        return status("ok", email=email, api_key=api_key)
-    else:
-        return {"status": "invalid email/password"}
+    if helper_account is not None:
+        if support_functions.check_password(password, helper_account["hashed_password"]):
+            api_key = create_new_api_key(email)
+            return status("ok", email=email, api_key=api_key)
+
+    return {"status": "invalid email/password"}
 
 
 def helper_login_api_key(email, api_key, new_api_key=False):
     helper_api_key = helper_api_keys_collection.find_one({"email": email})
 
-    if api_key == helper_api_key["api_key"]:
-        if new_api_key:
-            api_key = create_new_api_key(email)
-        return status("ok", email=email, api_key=api_key)
-    else:
-        return {"status": "invalid email/api_key"}
+    if helper_api_key is not None:
+        if api_key == helper_api_key["api_key"]:
+            if new_api_key:
+                api_key = create_new_api_key(email)
+            return status("ok", email=email, api_key=api_key)
+
+    return {"status": "invalid email/api_key"}
 
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-from flask_backend import app, helper_accounts_collection
+from flask_backend import app, helper_accounts_collection, status, api
 from flask import redirect, request
 
 from flask_backend.routes import support_functions
@@ -21,17 +21,34 @@ def backend_login():
 
     # Initial login
     if email is not None and password is not None:
-
         login_result_dict = api_authentication.helper_login_password(params_dict["email"], params_dict["password"])
-        return login_result_dict, 200
 
-    # App tries to automatically re-login client
+    # Automatic re-login from webapp
     if email is not None and api_key is not None:
         # TODO: Generate new API Key for every login request in production!
         login_result_dict = api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])
-        return login_result_dict, 200
 
-    return {"status": "missing parameter email/password/api_key"}, 200
+    else:
+        login_result_dict = status("missing parameter email/password/api_key")
+
+    if login_result_dict["status"] == "ok":
+        helper_accounts_collection.find_one({"email": email})
+        account_dict = {
+            "email_verified": helper_accounts_collection["email_verified"],
+            "zip_code": helper_accounts_collection["zip_code"],
+            "country": helper_accounts_collection["country"],
+        }
+
+        # TODO: Add real calls dict
+        calls_dict = {
+            "accepted": [],
+            "fulfilled": []
+        }
+        login_result_dict.update({"account": account_dict, "calls": calls_dict})
+
+    return login_result_dict, 200
+
+
 
 
 @app.route("/backend/logout/helper", methods=["POST"])
@@ -78,3 +95,6 @@ def backend_resend_email():
             return {"status": "email/api_key invalid"}, 200
 
 
+
+from flask_backend.resources.rest_helper_account import RESTAccount
+api.add_resource(RESTAccount, "/backend/database/account")
