@@ -12,6 +12,8 @@ flask-cors = "*"
 flask-restful = "*"
 certifi = "*"
 pymongo = "*"
+dnspython = "*"
+sendgrid = "*"
 
 [requires]
 python_version = "3.8"

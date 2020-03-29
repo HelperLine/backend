@@ -48,6 +48,11 @@ zip_code_calls_collection = zip_code_traffic_database["zip_code_calls"]
 zip_code_dataset = client.get_database("zip_code_dataset")
 zip_codes_collection = zip_code_dataset["zip_codes_germany"]
 
+token_database = client.get_database("token_database")
+helper_api_keys_collection = token_database["helper_api_keys"]
+admin_api_keys_collection = token_database["admin_api_keys"]
+email_tokens_collection = token_database["email_tokens"]
+
 
 
 app = Flask(__name__)
@@ -62,3 +67,8 @@ app.config['SECRET_KEY'] = SECRET_KEY
 cors = CORS(app)
 bcrypt = Bcrypt(app)
 api = Api(app)
+
+
+def status(text):
+    return {"status": text}
+
