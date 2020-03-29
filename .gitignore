@@ -1,0 +1,3 @@
+/venv
+/flask_backend/secrets.py
+/Pipfile.lock
