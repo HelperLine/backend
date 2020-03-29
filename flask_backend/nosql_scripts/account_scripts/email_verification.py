@@ -45,5 +45,11 @@ def trigger_email_verification(helper_id, email):
 
 
 if __name__ == "__main__":
-    trigger_email_verification("1402", TEST_EMAIL)
+    # trigger_email_verification("1402", TEST_EMAIL)
+    # email_tokens_collection.delete_many({})
+
+    # confirm_email("iu694Wfs8p7zVggbWeuLIPXplEhQoMHMXeDriOhMl0WRfSQSGhgDzLC0BIsJm32s")
+
+    pass
+
 
