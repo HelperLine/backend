@@ -69,6 +69,15 @@ bcrypt = Bcrypt(app)
 api = Api(app)
 
 
-def status(text):
-    return {"status": text}
+def status(text, **kwargs):
+    status_dict = {"status": text}
+    status_dict.update(kwargs)
+    return status_dict
+
+
+if __name__ == "__main__":
+    print(status("ok", api_key="1234567"))
+
+
+
 
