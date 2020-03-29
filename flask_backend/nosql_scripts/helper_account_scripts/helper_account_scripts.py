@@ -1,7 +1,7 @@
 
 from flask_backend import helper_accounts_collection, status, zip_code_helpers_collection
 
-from flask_backend.nosql_scripts.account_scripts import support_functions, email_verification, verify_register_form
+from flask_backend.nosql_scripts.helper_account_scripts import support_functions, email_verification, verify_register_form
 from pymongo.errors import DuplicateKeyError
 
 from flask_backend.secrets import TEST_EMAIL, TEST_PASSWORD, TEST_ZIP_CODE
@@ -16,7 +16,7 @@ def add_helper_account(email, password, zip_code, country="Germany"):
         new_helper = {
             "email": email,
             "email_verified": False,
-            "password": support_functions.hash_password(password),
+            "hashed_password": support_functions.hash_password(password),
             "zip_code": zip_code,
             "country": country
         }
