@@ -18,22 +18,18 @@ def verify_email_format(email):
 
 
 def verify_password_format(password):
-    number_check = upper_check = lower_check = sign_check = False
+    number_check = letter_check = False
 
     if len(password) < 8:
         return False
 
     for letter in password:
-        if letter in NUMBERS:
+        if (letter in NUMBERS):
             number_check = True
-        elif letter in UPPER_CASE_LETTERS:
-            upper_check = True
-        elif letter in LOWER_CASE_LETTERS:
-            lower_check = True
-        else:
-            sign_check = True
+        elif (letter in UPPER_CASE_LETTERS) or (letter in LOWER_CASE_LETTERS):
+            letter_check = True
 
-    return (number_check and upper_check and lower_check and sign_check)
+    return (number_check and letter_check)
 
 
 def verify_zip_code_format(zip_code):
@@ -50,7 +46,7 @@ def verify_zip_code_format(zip_code):
 
 def verify_country_format(country):
     # List of supported countries
-    return country in ["Germany"]
+    return country in ["Germany", "Deutschland"]
 
 
 def verify_register_form(email, password, zip_code, country, new_account=True):

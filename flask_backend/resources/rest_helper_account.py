@@ -4,7 +4,8 @@ from flask_backend.routes import support_functions
 from flask import request
 from flask_backend import status, helper_accounts_collection
 
-from flask_backend.nosql_scripts.helper_account_scripts import api_authentication, helper_account_scripts
+from flask_backend.nosql_scripts import helper_account_scripts
+from flask_backend.nosql_scripts.helper_account_scripts import api_authentication
 
 
 class RESTAccount(Resource):
@@ -31,7 +32,7 @@ class RESTAccount(Resource):
 
     def post(self):
         # Create a new account
-        params_dict = support_functions.get_params_dict(request)
+        params_dict = support_functions.get_params_dict(request, print_out=True)
 
         for key in ["email", "password", "zip_code", "country"]:
             if key not in params_dict:
@@ -40,6 +41,7 @@ class RESTAccount(Resource):
         add_response = helper_account_scripts.add_helper_account(params_dict["email"], params_dict["password"],
                                                                  params_dict["zip_code"], params_dict["country"])
 
+        print(add_response)
         # 'add_helper_account' also takes care of the immediate login
         return add_response
 

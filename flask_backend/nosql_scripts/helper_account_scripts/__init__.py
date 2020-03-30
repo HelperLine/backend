@@ -13,6 +13,8 @@ from pymongo import UpdateOne
 def add_helper_account(email, password, zip_code, country="Germany"):
     verification_status = verify_register_form.verify_register_form(email, password, zip_code, country)
 
+    print(verification_status)
+
     if verification_status["status"] == "ok":
         new_helper = {
             "email": email,
@@ -51,65 +53,78 @@ def modify_helper_account(email, **kwargs):
         if (email != kwargs["new_email"]) and (helper_account["email_verified"]):
             return status("email already verified")
         else:
-            new_email = kwargs["new_email"]
+            if not verify_register_form.verify_email_format(kwargs["new_email"]):
+                return status("email format invalid")
+            else:
+                new_email = kwargs["new_email"]
     else:
         new_email = email
 
     if "old_password" in kwargs and "new_password" in kwargs:
         if support_functions.check_password(kwargs["old_password"], helper_account["hashed_password"]):
-            new_password = support_functions.hash_password(kwargs["new_password"])
+            if not verify_register_form.verify_password_format(kwargs["new_password"]):
+                return status("password format invalid")
+            else:
+                new_password = support_functions.hash_password(kwargs["new_password"])
         else:
             return status("old password invalid")
     else:
         new_password = helper_account["hashed_password"]
 
     if "zip_code" in kwargs:
-        new_zip_code = kwargs["zip_code"]
+        if not verify_register_form.verify_zip_code_format(kwargs["zip_code"]):
+            return status("zip code format invalid")
+        else:
+            new_zip_code = kwargs["zip_code"]
     else:
         new_zip_code = helper_account["zip_code"]
 
     if "country" in kwargs:
-        new_country = kwargs["country"]
+        if not verify_register_form.verify_country_format(kwargs["country"]):
+            return status("country invalid")
+        else:
+            new_country = kwargs["country"]
     else:
         new_country = helper_account["country"]
 
     if (new_email != helper_account["email"]) or (new_password != helper_account["hashed_password"]) or \
             (new_zip_code != helper_account["zip_code"]) or (new_country != helper_account["country"]):
 
-        verification_status = verify_register_form.verify_register_form(
-            new_email, new_password, new_zip_code, new_country, new_account=False)
+        modified_helper_account = {
+            "email": new_email,
+            "hashed_password": new_password,
+            "zip_code": new_zip_code,
+            "country": new_country
+        }
 
-        if verification_status["status"] == "ok":
-            modified_helper_account = {
-                "email": new_email,
-                "hashed_password": new_password,
-                "zip_code": new_zip_code,
-                "country": new_country
-            }
+        # Update zip_code_traffic_database id needed
+        if new_zip_code != helper_account["zip_code"]:
+            operations = [
+                UpdateOne({"zip_code": helper_account["zip_code"]}, {'$pull': {'helpers': helper_account["_id"]}}),
+                UpdateOne({"zip_code": new_zip_code}, {'$push': {'helpers': helper_account["_id"]}})
+            ]
+            zip_code_helpers_collection.bulk_write(operations, ordered=False)
 
-            # Update zip_code_traffic_database id needed
-            if new_zip_code != helper_account["zip_code"]:
-                operations = [
-                    UpdateOne({"zip_code": helper_account["zip_code"]}, {'$pull': {'helpers': helper_account["_id"]}}),
-                    UpdateOne({"zip_code": new_zip_code}, {'$push': {'helpers': helper_account["_id"]}})
-                ]
-                zip_code_helpers_collection.bulk_write(operations, ordered=False)
+        helper_accounts_collection.update_one({"email": email}, {"$set": modified_helper_account})
 
-            helper_accounts_collection.update_one({"email": email}, {"$set": modified_helper_account})
+        if email != new_email:
+            helper_api_keys_collection.update_one({"email": email}, {"$set": {"email": new_email}})
+            email_tokens_collection.delete_one({"email": email})
+            email_verification.trigger_email_verification(helper_account["_id"], new_email)
 
-            if email != new_email:
-                helper_api_keys_collection.update_one({"email": email}, {"$set": {"email": new_email}})
-                email_tokens_collection.delete_one({"email": email})
-                email_verification.trigger_email_verification(helper_account["_id"], new_email)
-
-            # api_key remains the same
-            return status("ok", email=new_email)
-
-        else:
-            return verification_status
+        # api_key remains the same
+        return status("ok", email=new_email, account={
+            "email_verified": helper_account["email_verified"],
+            "zip_code": new_zip_code,
+            "country": new_country
+        })
 
     else:
-        return status("ok", email=new_email)
+        return status("ok", email=new_email, account={
+            "email_verified": helper_account["email_verified"],
+            "zip_code": helper_account["zip_code"],
+            "country": helper_account["country"]
+        })
 
 
 
