@@ -15,6 +15,7 @@ pymongo = "*"
 dnspython = "*"
 sendgrid = "*"
 requests = "*"
+twilio = "*"
 
 [requires]
 python_version = "3.8"

@@ -3,6 +3,7 @@ from flask_backend import status, caller_accounts_collection, calls_collection, 
 from datetime import datetime
 
 
+from bson.objectid import ObjectId
 # These scripts will just be used internally!
 
 
@@ -14,7 +15,8 @@ def add_caller(phone_number, zip_code, language):
         new_caller = {
             "phone_number": phone_number,
             "zip_code": zip_code,
-            "language": language
+            "language": language,
+            "calls": []
         }
         caller_id = caller_accounts_collection.insert_one(new_caller).inserted_id
     else:
@@ -46,31 +48,22 @@ def add_call(caller_id, local):
     return status("ok", call_id=call_id)
 
 
-def modify_call(call_id, feedback_granted=None, confirmed=None):
-    call = calls_collection.find_one({"_id": call_id})
+def set_feeback(call_id, feedback_granted):
+    print(f"Setting feedback to {feedback_granted}, call_id={call_id}")
+    calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": {"feedback_granted": feedback_granted}})
 
-    if call is None:
-        return {"status": "call_id invalid"}
+
+def set_confirmed(call_id, confirmed):
+    call = calls_collection.find_one({"_id": ObjectId(call_id)})
+
+    print(f"call= {call}")
+
+    if confirmed:
+        # add call to the callers calls list
+        caller_accounts_collection.update_one({"_id": ObjectId(call["caller_id"])}, {"$push": {"calls": call_id}})
+        calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": {"confirmed": True}})
     else:
-        call_update = {}
-
-        if feedback_granted is not None:
-            call_update.update({"feedback_granted": feedback_granted})
-
-        if confirmed is not None:
-            if confirmed:
-                # add call to the callers calls list
-                caller_accounts_collection.update_one({"_id": call["caller_id"]}, {"$push": {"calls": call_id}})
-
-                call_update.update({"confirmed": True})
-            else:
-                # abandon call
-                calls_collection.delete_one({"_id": call_id})
-
-        if len(call_update) != 0:
-            calls_collection.update_one({"_id": call_id}, {"$set": call_update})
-
-        return status("ok")
+        calls_collection.delete_one({"_id": ObjectId(call_id)})
 
 
 def accept_call(call_id, helper_id):
@@ -82,10 +75,10 @@ def accept_call(call_id, helper_id):
         "helper_id": helper_id,
         "timestamp_accepted": datetime.now()
     }
-    calls_collection.update_one({"_id": call_id}, {"$set": call_update})
+    calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": call_update})
 
     # Add call to agent's call list
-    helper_accounts_collection.update_one({"_id": helper_id}, {"$push": {"calls": call_id}})
+    helper_accounts_collection.update_one({"_id": ObjectId(call_id)}, {"$push": {"calls": call_id}})
 
 
 def fulfill_call(call_id):
@@ -96,19 +89,25 @@ def fulfill_call(call_id):
         "status": "fulfilled",
         "timestamp_fulfilled": datetime.now()
     }
-    calls_collection.update_one({"_id": call_id}, {"$set": call_update})
+    calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": call_update})
 
 
 def reject_call(call_id):
     # call_id and agent_id are assumed to be valid
-    call = calls_collection.find_one({"_id": call_id})
+    call = calls_collection.find_one({"_id": ObjectId(call_id)})
 
     # Change call status
     call_update = {
         "status": "pending",
         "helper_id": 0,
     }
-    calls_collection.update_one({"_id": call_id}, {"$set": call_update})
+    calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": call_update})
 
     # Remove call from agent's call list
-    helper_accounts_collection.update_one({"_id": call["helper_id"]}, {"pull": {"calls": call_id}})
+    helper_accounts_collection.update_one({"_id": ObjectId(call["helper_id"])}, {"$pull": {"calls": call_id}})
+
+
+if __name__ == "__main__":
+    call_id = "5e81e00cc40e18001ea76912"
+    calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": {"feedback_granted": True}})
+    print(calls_collection.find_one({"_id": ObjectId(call_id)}))
