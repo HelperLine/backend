@@ -56,6 +56,3 @@ class RESTAccount(Resource):
         modify_response = helper_account_scripts.modify_helper_account(**params_dict)
 
         return modify_response
-
-
-

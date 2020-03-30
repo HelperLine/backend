@@ -8,7 +8,7 @@ from flask_backend import status, helper_api_keys_collection, helper_accounts_co
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-def create_new_api_key(email):
+def helper_create_new_api_key(email):
     api_key = support_functions.generate_random_key(length=64)
 
     operations = [
@@ -20,7 +20,7 @@ def create_new_api_key(email):
     return api_key
 
 
-def delete_api_key(email):
+def helper_delete_api_key(email):
     helper_api_keys_collection.delete_many({"email": email})
 
 
@@ -32,7 +32,7 @@ def helper_login_password(email, password):
 
     if helper_account is not None:
         if support_functions.check_password(password, helper_account["hashed_password"]):
-            api_key = create_new_api_key(email)
+            api_key = helper_create_new_api_key(email)
             account = {
                 "email_verified": helper_account["email_verified"],
                 "zip_code": helper_account["zip_code"],
@@ -49,7 +49,7 @@ def helper_login_api_key(email, api_key, new_api_key=False):
     if helper_api_key is not None:
         if api_key == helper_api_key["api_key"]:
             if new_api_key:
-                api_key = create_new_api_key(email)
+                api_key = helper_create_new_api_key(email)
 
             helper_account = helper_accounts_collection.find_one({"email": email})
             account = {
@@ -65,9 +65,9 @@ def helper_login_api_key(email, api_key, new_api_key=False):
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-def logout_account(email, api_key):
+def helper_logout(email, api_key):
     helper_api_key = helper_api_keys_collection.find_one({"email": email})
     if api_key == helper_api_key["api_key"]:
-        delete_api_key(email)
+        helper_delete_api_key(email)
 
 

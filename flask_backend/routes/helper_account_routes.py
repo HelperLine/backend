@@ -9,7 +9,7 @@ import time
 
 
 @app.route("/backend/login/helper", methods=["POST"])
-def backend_login():
+def backend_helper_login():
     params_dict = support_functions.get_params_dict(request)
 
     # Artificial delay to further prevent brute forcing
@@ -55,14 +55,14 @@ def backend_login():
 
 
 @app.route("/backend/logout/helper", methods=["POST"])
-def backend_logout():
+def backend_helper_logout():
     params_dict = support_functions.get_params_dict(request)
 
     if "email" not in params_dict or "api_key" not in params_dict:
-        return {"Status": "missing parameter email/api_key"}, 200
+        return status("missing parameter email/api_key")
 
-    api_authentication.logout_account(params_dict["email"], params_dict["api_key"])
-    return {"status": "ok"}, 200
+    api_authentication.helper_logout(params_dict["email"], params_dict["api_key"])
+    return status("ok")
 
 
 
@@ -81,7 +81,7 @@ def backend_resend_email():
     params_dict = support_functions.get_params_dict(request)
 
     if "email" not in params_dict or "api_key" not in params_dict:
-        return {"status": "missing parameter email/api_key"}, 200
+        return status("missing parameter email/api_key")
 
     else:
         login_dict = api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])
@@ -91,11 +91,11 @@ def backend_resend_email():
 
             if not helper_account["email_verified"]:
                 email_verification.trigger_email_verification(helper_account["_id"], helper_account["email"])
-                return {"status": "ok"}, 200
+                return status("ok")
             else:
-                return {"status": "email already verified"}, 200
+                return status("email already verified")
         else:
-            return {"status": "email/api_key invalid"}, 200
+            return status("email/api_key invalid")
 
 
 
