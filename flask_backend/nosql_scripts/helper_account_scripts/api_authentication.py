@@ -1,5 +1,3 @@
-from flask_backend import bcrypt
-from flask_backend import BCRYPT_SALT
 
 from pymongo import DeleteMany, InsertOne
 

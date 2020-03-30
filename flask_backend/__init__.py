@@ -38,12 +38,7 @@ helper_accounts_collection = account_database["helper_accounts"]
 
 call_database = client.get_database("call_database")
 calls_collection = call_database["calls"]
-agent_behavior_collection = call_database["agent_behavior"]
-
-zip_code_traffic_database = client.get_database("zip_code_traffic_database")
-zip_code_helpers_collection = zip_code_traffic_database["zip_code_helpers"]
-zip_code_callers_collection = zip_code_traffic_database["zip_code_callers"]
-zip_code_calls_collection = zip_code_traffic_database["zip_code_calls"]
+helper_behavior_collection = call_database["helper_behavior"]
 
 zip_code_dataset = client.get_database("zip_code_dataset")
 zip_codes_collection = zip_code_dataset["zip_codes_germany"]

@@ -1,5 +1,5 @@
 
-from flask_backend import helper_accounts_collection, status, zip_code_helpers_collection, helper_api_keys_collection, email_tokens_collection
+from flask_backend import helper_accounts_collection, status, helper_api_keys_collection, email_tokens_collection
 
 from flask_backend.nosql_scripts.helper_account_scripts import support_functions, email_verification, verify_register_form, api_authentication
 from pymongo.errors import DuplicateKeyError
@@ -8,7 +8,6 @@ from flask_backend.secrets import TEST_EMAIL, TEST_PASSWORD, TEST_ZIP_CODE
 
 import time
 
-from pymongo import UpdateOne
 
 def add_helper_account(email, password, zip_code, country="Germany"):
     verification_status = verify_register_form.verify_register_form(email, password, zip_code, country)
@@ -35,9 +34,6 @@ def add_helper_account(email, password, zip_code, country="Germany"):
 
         # Send verification email and add verification record
         email_verification.trigger_email_verification(helper_id, email)
-
-        # adding helper to zip-code-traffic
-        zip_code_helpers_collection.update_one({"zip_code": zip_code}, {'$push': {'helpers': helper_id}})
 
         # login and return email/api_key dict
         return api_authentication.helper_login_password(email, password)
@@ -97,14 +93,6 @@ def modify_helper_account(email, **kwargs):
             "country": new_country
         }
 
-        # Update zip_code_traffic_database id needed
-        if new_zip_code != helper_account["zip_code"]:
-            operations = [
-                UpdateOne({"zip_code": helper_account["zip_code"]}, {'$pull': {'helpers': helper_account["_id"]}}),
-                UpdateOne({"zip_code": new_zip_code}, {'$push': {'helpers': helper_account["_id"]}})
-            ]
-            zip_code_helpers_collection.bulk_write(operations, ordered=False)
-
         helper_accounts_collection.update_one({"email": email}, {"$set": modified_helper_account})
 
         if email != new_email:
@@ -135,9 +123,3 @@ if __name__ == "__main__":
 
     print(f"total: {t2 - t1} seconds")
     helper_accounts_collection.delete_many({})
-    zip_code_helpers_collection.update_one({"zip_code": TEST_ZIP_CODE}, {'helpers': []})
-
-
-
-
-
