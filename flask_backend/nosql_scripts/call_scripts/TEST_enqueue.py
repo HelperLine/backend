@@ -1,10 +1,10 @@
-from flask_backend import status, call_queue
+from flask_backend import status, call_queue, calls_collection
 from flask_backend.nosql_scripts.call_scripts import enqueue, support_functions
 from datetime import datetime, timedelta
 import time
 
-local_timeout = timedelta(seconds=7.5)
-global_timeout = timedelta(seconds=15)
+
+from bson import ObjectId
 
 
 def check_queues(test_no, desired_local_list, desired_global_list, desired_urgent_list):
@@ -15,14 +15,14 @@ def check_queues(test_no, desired_local_list, desired_global_list, desired_urgen
         {"_id": 0, "call_id": 1}))
 
     global_calls = list(call_queue.find(
-        {"local": True, "timestamp_received": {"$lt": current_timestamp - local_timeout}},
+        {"local": True, "timestamp_received": {"$lt": current_timestamp - support_functions.local_timeout_timedelta}},
         {"_id": 0, "call_id": 1}))
     global_calls += list(call_queue.find(
         {"local": False},
         {"_id": 0, "call_id": 1}))
 
     urgent_calls = list(call_queue.find(
-        {"timestamp_received": {"$lt": current_timestamp - global_timeout}},
+        {"timestamp_received": {"$lt": current_timestamp - support_functions.global_timeout_timedelta}},
         {"_id": 0, "call_id": 1}))
 
 
@@ -62,12 +62,38 @@ def test_enqueue():
     results = []
 
     # Test Start) EMPTY all queues
+    calls_collection.delete_many({})
     call_queue.delete_many({})
+
+    call_id_A = calls_collection.insert_one({
+        "timestamp_received": datetime.now(),
+        "local": True,
+        "zip_code": "80000"
+    }).inserted_id
+
+    call_id_B = calls_collection.insert_one({
+        "timestamp_received": datetime.now(),
+        "local": False,
+        "zip_code": "80000"
+    }).inserted_id
+
+    call_id_C = calls_collection.insert_one({
+        "timestamp_received": datetime.now() + timedelta(seconds=5),
+        "local": True,
+        "zip_code": "80000"
+    }).inserted_id
+
+    call_id_D = calls_collection.insert_one({
+        "timestamp_received": datetime.now() + timedelta(seconds=5),
+        "local": False,
+        "zip_code": "80000"
+    }).inserted_id
+
 
     # T1) Add [local A] and [global B]
     timestamp = datetime.now()
-    status_1 = enqueue.enqueue("A", True, timestamp)["status"]
-    status_2 = enqueue.enqueue("B", False, timestamp)["status"]
+    status_1 = enqueue.enqueue(call_id_A)["status"]
+    status_2 = enqueue.enqueue(call_id_B)["status"]
 
     results += [
         {"name": "Test 1 (local add)", "result": status_1 == "ok"},
@@ -75,15 +101,12 @@ def test_enqueue():
     ]
 
     # .) CHECK manually if everything is set correctly -> local: [A], global: [B], urgent: []
-    results += check_queues(2, ["A"], ["B"], [])
+    results += check_queues(2, [call_id_A], [call_id_B], [])
 
-    # .) CHECK manually if everything is set correctly -> local: [A], global: [B], urgent: []
-    results += check_queues(3, ["A"], ["B"], [])
-
-    # .) Add [local A] and [global A] (both are invalid but non-breaking operations)
+    # .) Add [local A] and [global B] (both are invalid but non-breaking operations)
     timestamp = datetime.now()
-    status_1 = enqueue.enqueue("A", True, timestamp)["status"]
-    status_2 = enqueue.enqueue("A", False, timestamp)["status"]
+    status_1 = enqueue.enqueue(call_id_A)["status"]
+    status_2 = enqueue.enqueue(call_id_B)["status"]
 
     results += [
         {"name": "Test 4 (local duplicate add)", "result": status_1 == "call id already exists"},
@@ -91,15 +114,15 @@ def test_enqueue():
     ]
 
     # .) CHECK manually if everything is set correctly -> local: [A], global: [B], urgent: []
-    results += check_queues(5, ["A"], ["B"], [])
+    results += check_queues(5, [call_id_A], [call_id_B], [])
 
     # T2) sleep for (5 seconds) now at t=5
     time.sleep(5)
 
     # .) Add [local C] and [global D]
     timestamp = datetime.now()
-    status_1 = enqueue.enqueue("C", True, timestamp)["status"]
-    status_2 = enqueue.enqueue("D", False, timestamp)["status"]
+    status_1 = enqueue.enqueue(call_id_C)["status"]
+    status_2 = enqueue.enqueue(call_id_D)["status"]
 
     results += [
         {"name": "Test 6 (local add)", "result": status_1 == "ok"},
@@ -107,28 +130,30 @@ def test_enqueue():
     ]
 
     # .) CHECK manually if everything is set correctly -> local: [A, C], global: [B, D], urgent: []
-    results += check_queues(7, ["A", "C"], ["B", "D"], [])
+    results += check_queues(7, [call_id_A, call_id_C], [call_id_B, call_id_D], [])
 
     # T3) sleep for (5 seconds) now at t=10
     time.sleep(5)
 
     # .) CHECK manually if everything is set correctly -> local: [A, C], global: [A, B, D], urgent: []
-    results += check_queues(8, ["A", "C"], ["A", "B", "D"], [])
+    results += check_queues(8, [call_id_A, call_id_C], [call_id_A, call_id_B, call_id_D], [])
 
     # T4) sleep for (6 seconds) now at t=16
     time.sleep(6)
 
     # .) CHECK manually if everything is set correctly -> local: [A, C], global: [A, B, C, D], urgent: [A, B]
-    results += check_queues(9, ["A", "C"], ["A", "B", "C", "D"], ["A", "B"])
+    results += check_queues(9, [call_id_A, call_id_C], [call_id_A, call_id_B, call_id_C, call_id_D], [call_id_A, call_id_B])
 
     # T5) sleep for (5 seconds) now at t=21
     time.sleep(5)
 
     # .) CHECK manually if everything is set correctly -> local: [A, C], global: [A, B, C, D], urgent: [A, B, C, D]
-    results += check_queues(10, ["A", "C"], ["A", "B", "C", "D"], ["A", "B", "C", "D"])
+    results += check_queues(10, [call_id_A, call_id_C], [call_id_A, call_id_B, call_id_C, call_id_D], [call_id_A, call_id_B, call_id_C, call_id_D])
+
 
     # Test End) EMPTY all queues
-    call_queue.delete_many({})
+    calls_collection.delete_many({"_id": {"$in": [ObjectId(call_id) for call_id in [call_id_A, call_id_B, call_id_C, call_id_D]]}})
+    call_queue.delete_many({"_id": {"$in": [ObjectId(call_id) for call_id in [call_id_A, call_id_B, call_id_C, call_id_D]]}})
 
     return results
 

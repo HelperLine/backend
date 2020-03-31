@@ -1,4 +1,14 @@
 
+from datetime import timedelta
+
+# constants
+local_timeout_seconds = 30
+global_timeout_seconds = 60
+
+local_timeout_timedelta = timedelta(seconds=local_timeout_seconds)
+global_timeout_timedelta = timedelta(seconds=global_timeout_seconds)
+
+
 
 def records_to_list(records):
     # in: [{"call_id": "A"}, {"call_id": "B"}]
