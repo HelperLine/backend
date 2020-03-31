@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import time
 
 from flask_backend.nosql_scripts.helper_account_scripts import support_functions
+from flask_backend.nosql_scripts.call_scripts.support_functions import records_to_list
 
 # constants
 LOCAL_QUEUE_WAITING_TIME = 15 * 60
@@ -10,11 +11,6 @@ GLOBAL_QUEUE_WAITING_TIME = 45 * 60
 
 
 # These functions will just be called internally!
-
-def records_to_list(records):
-    # in: [{"call_id": "A"}, {"call_id": "B"}]
-    # out: ["A", "B"]
-    return [record["call_id"] for record in records]
 
 
 def add_call_to_queue(call_id, local, timestamp_received):
@@ -98,7 +94,7 @@ def update_queues(local_queue_waiting_time=LOCAL_QUEUE_WAITING_TIME,
 
     all_urgent_calls = list(local_queue.find({"timestamp_received": {"$lt": time_decider_global_queue}}, {"_id": 0}))
     all_urgent_calls += list(global_queue.find({"timestamp_received": {"$lt": time_decider_global_queue},
-                                                "call_id": {"$nin": [call["call_id"] for call in all_urgent_calls]}},
+                                                "call_id": {"$nin": records_to_list(all_urgent_calls)}},
                                                {"_id": 0}))
 
     global_calls_to_be_added = []
