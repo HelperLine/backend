@@ -49,9 +49,7 @@ admin_api_keys_collection = token_database["admin_api_keys"]
 email_tokens_collection = token_database["email_tokens"]
 
 queue_database = client.get_database("queue_database")
-local_queue = queue_database["local_queue"]
-global_queue = queue_database["global_queue"]
-urgent_queue = queue_database["urgent_queue"]
+call_queue = queue_database["call_queue"]
 
 
 app = Flask(__name__)
