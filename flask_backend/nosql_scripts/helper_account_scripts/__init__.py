@@ -1,10 +1,13 @@
+from flask_backend import helper_accounts_collection, status, helper_api_keys_collection, email_tokens_collection, \
+    calls_collection, caller_accounts_collection
 
-from flask_backend import helper_accounts_collection, status, helper_api_keys_collection, email_tokens_collection
-
-from flask_backend.nosql_scripts.helper_account_scripts import support_functions, email_verification, verify_register_form, api_authentication
+from flask_backend.nosql_scripts.helper_account_scripts import support_functions, email_verification, \
+    verify_register_form, api_authentication
 from pymongo.errors import DuplicateKeyError
 
 from flask_backend.secrets import TEST_EMAIL, TEST_PASSWORD, TEST_ZIP_CODE
+
+import datetime
 
 import time
 
@@ -20,7 +23,14 @@ def add_helper_account(email, password, zip_code, country="Germany"):
             "email_verified": False,
             "hashed_password": support_functions.hash_password(password),
             "zip_code": zip_code,
-            "country": country
+            "country": country,
+
+            "register_date": datetime.datetime.now().strftime("%d.%m.%y"),
+
+            "filter_type_local": False,
+            "filter_type_global": False,
+            "filter_language_german": False,
+            "filter_language_english": False,
         }
 
         try:
@@ -44,6 +54,27 @@ def add_helper_account(email, password, zip_code, country="Germany"):
 
 def modify_helper_account(email, **kwargs):
     helper_account = helper_accounts_collection.find_one({"email": email})
+
+    new_filter_type_local = new_filter_type_global = None
+
+    if "filter_type_local" in kwargs and "filter_type_global" in kwargs:
+        if not (kwargs["filter_type_local"] and kwargs["filter_type_global"]):
+            new_filter_type_local = kwargs["filter_type_local"]
+            new_filter_type_global = kwargs["filter_type_global"]
+
+    if new_filter_type_local is None or new_filter_type_global is None:
+        new_filter_type_local = helper_account["filter_type_local"]
+        new_filter_type_global = helper_account["filter_type_global"]
+
+    if "filter_language_german" in kwargs:
+        new_filter_language_german = kwargs["filter_language_german"]
+    else:
+        new_filter_language_german = helper_account["filter_language_german"]
+
+    if "filter_language_english" in kwargs:
+        new_filter_language_english = kwargs["filter_language_english"]
+    else:
+        new_filter_language_english = helper_account["filter_language_english"]
 
     if "new_email" in kwargs:
         if (email != kwargs["new_email"]) and (helper_account["email_verified"]):
@@ -84,13 +115,22 @@ def modify_helper_account(email, **kwargs):
         new_country = helper_account["country"]
 
     if (new_email != helper_account["email"]) or (new_password != helper_account["hashed_password"]) or \
-            (new_zip_code != helper_account["zip_code"]) or (new_country != helper_account["country"]):
+            (new_zip_code != helper_account["zip_code"]) or (new_country != helper_account["country"]) or \
+            (new_filter_type_local != helper_account["filter_type_local"]) or \
+            (new_filter_type_global != helper_account["filter_type_global"]) or \
+            (new_filter_language_german != helper_account["filter_language_german"]) or \
+            (new_filter_language_english != helper_account["filter_language_english"]):
 
         modified_helper_account = {
             "email": new_email,
             "hashed_password": new_password,
             "zip_code": new_zip_code,
-            "country": new_country
+            "country": new_country,
+
+            "filter_type_local": new_filter_type_local,
+            "filter_type_global": new_filter_type_global,
+            "filter_language_german": new_filter_language_german,
+            "filter_language_english": new_filter_language_english,
         }
 
         helper_accounts_collection.update_one({"email": email}, {"$set": modified_helper_account})
@@ -101,18 +141,11 @@ def modify_helper_account(email, **kwargs):
             email_verification.trigger_email_verification(helper_account["_id"], new_email)
 
         # api_key remains the same
-        return status("ok", email=new_email, account={
-            "email_verified": helper_account["email_verified"],
-            "zip_code": new_zip_code,
-            "country": new_country
-        })
-
+        response_dict = support_functions.get_all_helper_data(new_email)
     else:
-        return status("ok", email=new_email, account={
-            "email_verified": helper_account["email_verified"],
-            "zip_code": helper_account["zip_code"],
-            "country": helper_account["country"]
-        })
+        response_dict = support_functions.get_all_helper_data(email)
+
+    return response_dict
 
 
 

@@ -72,8 +72,7 @@ def status(text, **kwargs):
     return status_dict
 
 
-from flask_backend.routes import helper_account_routes
-from flask_backend.routes import hotline_routes
+from flask_backend.routes import helper_account_routes, helper_call_routes, hotline_routes
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 from flask_backend import status, caller_accounts_collection, calls_collection, helper_accounts_collection
 from datetime import datetime
 
+from flask_backend.nosql_scripts.call_scripts import dequeue
+
 
 from bson.objectid import ObjectId
 # These scripts will just be used internally!
@@ -66,19 +68,28 @@ def set_confirmed(call_id, confirmed):
         calls_collection.delete_one({"_id": ObjectId(call_id)})
 
 
-def accept_call(call_id, helper_id):
+def accept_call(helper_id, only_local_calls=False, only_global_calls=False):
     # call_id and agent_id are assumed to be valid
 
-    # Change call status
-    call_update = {
-        "status": "accepted",
-        "helper_id": helper_id,
-        "timestamp_accepted": datetime.now()
-    }
-    calls_collection.update_one({"_id": ObjectId(call_id)}, {"$set": call_update})
+    dequeue_result = dequeue.dequeue(helper_id, only_local_calls=only_local_calls, only_global_calls=only_global_calls)
 
-    # Add call to agent's call list
-    helper_accounts_collection.update_one({"_id": ObjectId(call_id)}, {"$push": {"calls": call_id}})
+    if dequeue_result["status"] != "ok":
+        return dequeue_result
+    else:
+        call = calls_collection.find_one(
+            {"call_id": dequeue_result["call_id"]},
+            {"_id": 1, "caller_id": 1, "local": 1, "timestamp_received": 1, "timestamp_accepted": 1}
+        )
+        caller = caller_accounts_collection.find_one(
+            {"_id": ObjectId(call["caller_id"])},
+            {"_id": 1, "phone_number": 1, "zip_code": 1}
+        )
+        return status("ok",
+                      phone_number=caller["phone_number"],
+                      local=call["local"],
+                      zip_code=caller["zip_code"],
+                      timestamp_received=call["timestamp_received"],
+                      timestamp_accepted=call["timestamp_accepted"])
 
 
 def fulfill_call(call_id):
