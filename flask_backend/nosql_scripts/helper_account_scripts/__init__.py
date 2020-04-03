@@ -5,7 +5,6 @@ from flask_backend.nosql_scripts.helper_account_scripts import support_functions
     verify_register_form, api_authentication
 from pymongo.errors import DuplicateKeyError
 
-from flask_backend.secrets import TEST_EMAIL, TEST_PASSWORD, TEST_ZIP_CODE
 
 import datetime
 

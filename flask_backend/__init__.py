@@ -5,24 +5,22 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_restful import Api
 
-
-"""
 try:
     from flask_backend.secrets import MONGODB_WRITE_CONNECTION_STRING
     from flask_backend.secrets import SECRET_KEY, BCRYPT_SALT, GCP_API_KEY, SENDGRID_API_KEY, BACKEND_URL
 except Exception:
-"""
 
-# The secrets file will not be included in any repository and will
-# never leave this computer In production these values will be set
-# by environment variables
+    # The secrets file will not be included in any repository and will
+    # never leave this computer In production these values will be set
+    # by environment variables
 
-MONGODB_WRITE_CONNECTION_STRING = os.getenv("MONGODB_WRITE_CONNECTION_STRING")
-SECRET_KEY = os.getenv("SECRET_KEY")
-BCRYPT_SALT = os.getenv("BCRYPT_SALT")
-GCP_API_KEY = os.getenv("GCP_API_KEY")
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-BACKEND_URL = os.getenv("BACKEND_URL")
+    MONGODB_WRITE_CONNECTION_STRING = os.getenv("MONGODB_WRITE_CONNECTION_STRING")
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    BCRYPT_SALT = os.getenv("BCRYPT_SALT")
+    GCP_API_KEY = os.getenv("GCP_API_KEY")
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    BACKEND_URL = os.getenv("BACKEND_URL")
+
 
 import os
 import certifi

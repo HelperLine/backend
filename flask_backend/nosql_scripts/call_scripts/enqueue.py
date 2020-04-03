@@ -1,9 +1,4 @@
 from flask_backend import status, call_queue, calls_collection
-from datetime import datetime, timedelta
-import time
-
-from flask_backend.nosql_scripts.helper_account_scripts import support_functions
-from flask_backend.nosql_scripts.call_scripts.support_functions import records_to_list
 
 # These functions will just be called internally!
 

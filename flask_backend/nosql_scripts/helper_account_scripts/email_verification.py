@@ -4,8 +4,6 @@ from sendgrid.helpers.mail import *
 from flask_backend import SENDGRID_API_KEY, BACKEND_URL, status, email_tokens_collection, helper_accounts_collection
 from flask_backend.nosql_scripts.helper_account_scripts import support_functions
 
-from flask_backend.secrets import TEST_EMAIL
-
 from pymongo import DeleteMany, InsertOne
 
 
