@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/react/css/main.cab9a32b.chunk.css",
-    "main.js": "/static/react/js/main.15d6f519.chunk.js",
-    "main.js.map": "/static/react/js/main.15d6f519.chunk.js.map",
+    "main.js": "/static/react/js/main.00d619d1.chunk.js",
+    "main.js.map": "/static/react/js/main.00d619d1.chunk.js.map",
     "runtime-main.js": "/static/react/js/runtime-main.99fd3754.js",
     "runtime-main.js.map": "/static/react/js/runtime-main.99fd3754.js.map",
     "js/2.d07eda9e.chunk.js": "/static/react/js/2.d07eda9e.chunk.js",
@@ -24,13 +24,13 @@
     "media/Drawing_Server_600px.png": "/static/react/media/Drawing_Server_600px.932cc717.png",
     "media/Drawing_Target_Caller_800px.png": "/static/react/media/Drawing_Target_Caller_800px.4f6eb4dd.png",
     "media/Drawing_Target_Helper_800px.png": "/static/react/media/Drawing_Target_Helper_800px.3ad999ed.png",
-    "precache-manifest.1047065d54fc9509b4b3895f30b09949.js": "/static/react/precache-manifest.1047065d54fc9509b4b3895f30b09949.js",
+    "precache-manifest.bce2a7367eb32803ae38de5242f45cc2.js": "/static/react/precache-manifest.bce2a7367eb32803ae38de5242f45cc2.js",
     "service-worker.js": "/static/react/service-worker.js"
   },
   "entrypoints": [
     "js/runtime-main.99fd3754.js",
     "js/2.d07eda9e.chunk.js",
     "css/main.cab9a32b.chunk.css",
-    "js/main.15d6f519.chunk.js"
+    "js/main.00d619d1.chunk.js"
   ]
 }

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, redirect
 import os
 
 from flask_bcrypt import Bcrypt
@@ -72,6 +72,14 @@ def status(text, **kwargs):
     status_dict = {"status": text}
     status_dict.update(kwargs)
     return status_dict
+
+
+@app.before_request
+def before_request():
+    if request.url.startswith('http://'):
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
 
 
 from flask_backend.routes import helper_account_routes, helper_call_routes, hotline_routes, react_routes
