@@ -1,5 +1,5 @@
 
-from flask_backend import bcrypt, BCRYPT_SALT, status, helper_accounts_collection, calls_collection
+from flask_backend import bcrypt, BCRYPT_SALT, status, helper_accounts_collection, caller_accounts_collection, calls_collection, zip_codes_collection
 import random
 
 
@@ -40,32 +40,14 @@ def get_all_helper_data(email):
         "country": helper_account["country"],
     }
 
+    filters_dict = get_helper_filters_dict(helper_account)
+
+
     # TODO: !
     calls_dict = get_helper_calls_dict(helper_account["_id"])
 
     # TODO: !
-    performance_dict = {
-        "area": {
-            "volunteers": 1,
-            "callers": 0,
-            "calls": 0,
-        },
-        "account": {
-            "registered": helper_account["register_date"],
-            "calls": len(calls_dict["fulfilled"]),
-        }
-    }
-
-    filters_dict = {
-        "type": {
-            "local": helper_account["filter_type_local"],
-            "global": helper_account["filter_type_global"],
-        },
-        "language": {
-            "german": helper_account["filter_language_german"],
-            "english": helper_account["filter_language_english"],
-        },
-    }
+    performance_dict = get_helper_performance_dict(helper_account, calls_dict)
 
     return status("ok",
                   email=email,
@@ -84,3 +66,64 @@ def get_helper_calls_dict(helper_id):
         "accepted": list(calls_collection.find({"helper_id": helper_id, "status": "accepted"})),
         "fulfilled": list(calls_collection.find({"helper_id": helper_id, "status": "fulfilled"})),
     }
+
+def get_helper_filters_dict(helper_account):
+    return {
+        "type": {
+            "local": helper_account["filter_type_local"],
+            "global": helper_account["filter_type_global"],
+        },
+        "language": {
+            "german": helper_account["filter_language_german"],
+            "english": helper_account["filter_language_english"],
+        },
+    }
+
+
+def get_helper_performance_dict(helper_account, calls_dict):
+    adjacent_zip_codes = get_adjacent_zip_codes(helper_account["zip_code"])
+
+    return {
+        "area": {
+            "volunteers": int(helper_accounts_collection.count_documents({"zip_code": {"$in": adjacent_zip_codes}})),
+            "callers": int(caller_accounts_collection.count_documents({"zip_code": {"$in": adjacent_zip_codes}})),
+            "calls": 0,
+        },
+        "account": {
+            "registered": helper_account["register_date"],
+            "calls": len(calls_dict["fulfilled"]),
+        }
+    }
+
+
+def get_adjacent_zip_codes(zip_code):
+    # The returned list should include
+    #  * all zip codes in a radius of 5km (at most 20 zip codes)
+    #  * at least 8 zip codes (some may be more than 5km away)
+
+    raw_adjacency_list = zip_codes_collection.find_one({"zip_code": zip_code}, {"_id": 0, "adjacent_zip_codes": 1})
+
+    if raw_adjacency_list is None:
+        return [zip_code]
+
+    zip_codes = [(record["zip_code"], record["distance"]) for record in raw_adjacency_list["adjacent_zip_codes"]]
+
+    if len(zip_codes) <= 8:
+        return [record[0] for record in zip_code] + [zip_code]
+
+    zip_codes.sort(key=lambda x: x[1])
+
+    # Take at least 8 zip codes
+    zip_code_final = zip_codes[0:8]
+    zip_codes = zip_codes[8:]
+
+    # Add all the remaining zip codes closer than 5km
+    zip_codes = list(filter(lambda x: x[1] < 5, zip_codes))
+    zip_code_final += zip_codes
+
+    return [record[0] for record in zip_code_final] + [zip_code]
+
+
+if __name__ == "__main__":
+    get_adjacent_zip_codes("80637")
+
