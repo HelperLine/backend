@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/static/react/css/main.cab9a32b.chunk.css",
-    "main.js": "/static/react/js/main.41d93289.chunk.js",
-    "main.js.map": "/static/react/js/main.41d93289.chunk.js.map",
+    "main.js": "/static/react/js/main.15d6f519.chunk.js",
+    "main.js.map": "/static/react/js/main.15d6f519.chunk.js.map",
     "runtime-main.js": "/static/react/js/runtime-main.99fd3754.js",
     "runtime-main.js.map": "/static/react/js/runtime-main.99fd3754.js.map",
-    "js/2.0fe85b59.chunk.js": "/static/react/js/2.0fe85b59.chunk.js",
-    "js/2.0fe85b59.chunk.js.map": "/static/react/js/2.0fe85b59.chunk.js.map",
+    "js/2.d07eda9e.chunk.js": "/static/react/js/2.d07eda9e.chunk.js",
+    "js/2.d07eda9e.chunk.js.map": "/static/react/js/2.d07eda9e.chunk.js.map",
     "../../templates/index.html": "/static/react/../../templates/index.html",
     "css/main.cab9a32b.chunk.css.map": "/static/react/css/main.cab9a32b.chunk.css.map",
-    "js/2.0fe85b59.chunk.js.LICENSE.txt": "/static/react/js/2.0fe85b59.chunk.js.LICENSE.txt",
+    "js/2.d07eda9e.chunk.js.LICENSE.txt": "/static/react/js/2.d07eda9e.chunk.js.LICENSE.txt",
     "media/Drawing_404.svg": "/static/react/media/Drawing_404.27414daa.svg",
     "media/Drawing_Coffee_600px.png": "/static/react/media/Drawing_Coffee_600px.ee5d9107.png",
     "media/Drawing_Collab_1200px.png": "/static/react/media/Drawing_Collab_1200px.08c1464a.png",
@@ -24,13 +24,13 @@
     "media/Drawing_Server_600px.png": "/static/react/media/Drawing_Server_600px.932cc717.png",
     "media/Drawing_Target_Caller_800px.png": "/static/react/media/Drawing_Target_Caller_800px.4f6eb4dd.png",
     "media/Drawing_Target_Helper_800px.png": "/static/react/media/Drawing_Target_Helper_800px.3ad999ed.png",
-    "precache-manifest.5463bb79d4377ffae639d3ee2a479874.js": "/static/react/precache-manifest.5463bb79d4377ffae639d3ee2a479874.js",
+    "precache-manifest.1047065d54fc9509b4b3895f30b09949.js": "/static/react/precache-manifest.1047065d54fc9509b4b3895f30b09949.js",
     "service-worker.js": "/static/react/service-worker.js"
   },
   "entrypoints": [
     "js/runtime-main.99fd3754.js",
-    "js/2.0fe85b59.chunk.js",
+    "js/2.d07eda9e.chunk.js",
     "css/main.cab9a32b.chunk.css",
-    "js/main.41d93289.chunk.js"
+    "js/main.15d6f519.chunk.js"
   ]
 }
