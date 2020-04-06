@@ -60,6 +60,18 @@ def trigger_phone_number_verification(helper_id):
     return status("ok", token=token)
 
 
+def confirm_phone_number_verification(helper_account):
+    # this function can be used for the initial send as well as resending
+    helper_accounts_collection.update_one(
+        {"_id": ObjectId(helper_account["_id"])},
+        {"$set": {
+            "phone_number_confirmed": True
+        }}
+    )
+
+    return support_functions.get_all_helper_data(helper_account["email"])
+
+
 if __name__ == "__main__":
     # trigger_email_verification("1402", TEST_EMAIL)
     # email_tokens_collection.delete_many({})

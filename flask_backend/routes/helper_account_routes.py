@@ -95,6 +95,22 @@ def backend_resend_email():
 
 
 
+
+@app.route("/backend/phone/trigger", methods=["POST"])
+def backend_trigger_phone_verification():
+    params_dict = support_functions.get_params_dict(request)
+
+    if "email" not in params_dict or "api_key" not in params_dict:
+        return status("missing parameter email/api_key")
+
+    if api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])["status"] != "ok":
+        return {"status": "invalid request"}
+
+    helper_account = helper_accounts_collection.find_one({"email": params_dict["email"]}, {"_id": 1})
+
+    return phone_verification.trigger_phone_number_verification(helper_account["_id"])
+
+
 @app.route("/backend/phone/verify", methods=['GET', 'POST'])
 def hotline_phone_verification():
 
@@ -123,24 +139,19 @@ def hotline_phone_verification():
     return str(resp)
 
 
-@app.route("/backend/phone/trigger", methods=["POST"])
-def backend_trigger_phone_verification():
+@app.route("/backend/phone/confirm", methods=["POST"])
+def backend_confirm_phone_verification():
     params_dict = support_functions.get_params_dict(request)
 
     if "email" not in params_dict or "api_key" not in params_dict:
         return status("missing parameter email/api_key")
 
     if api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])["status"] != "ok":
-        return {"status": "invalid request"}
+        return status("invalid request")
 
-    helper_account = helper_accounts_collection.find_one({"email": params_dict["email"]}, {"_id": 1})
+    helper_account = helper_accounts_collection.find_one({"email": params_dict["email"]})
 
-    return phone_verification.trigger_phone_number_verification(helper_account["_id"])
-
-
-
-
-
+    return phone_verification.confirm_phone_number_verification(helper_account)
 
 
 

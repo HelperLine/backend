@@ -21,7 +21,8 @@ def add_helper_account(email, password, zip_code, country="Germany"):
             "email": email,
             "email_verified": False,
             "phone_number": "",
-            "phone_number_verified": False,
+            "phone_number_verified": False,  # the user called and entered the correct code
+            "phone_number_confirmed": False,  # confirmed = afterwards the user clicks "confirm" inside the popup
 
             "hashed_password": support_functions.hash_password(password),
             "zip_code": zip_code,

@@ -18,6 +18,9 @@ class RESTAccount(Resource):
         # Get all infos for a specific account
         params_dict = support_function_rest.get_params_dict(request)
 
+        print("lololo")
+        print(params_dict)
+
         if api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])["status"] != "ok":
             return {"status": "invalid request"}
 

@@ -35,11 +35,14 @@ def check_password(password, hashed_password):
 def get_all_helper_data(email):
     helper_account = helper_accounts_collection.find_one({"email": email})
 
+    print(helper_account)
+
     account_dict = {
         "email_verified": helper_account["email_verified"],
 
         "phone_number": helper_account["phone_number"],
         "phone_number_verified": helper_account["phone_number_verified"],
+        "phone_number_confirmed": helper_account["phone_number_confirmed"],
 
         "zip_code": helper_account["zip_code"],
         "country": helper_account["country"],
