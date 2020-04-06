@@ -10,6 +10,7 @@ from flask_backend.routes import support_functions
 
 
 
+
 @app.route("/hotline", methods=['GET', 'POST'])
 def initial_endpoint():
 
@@ -173,5 +174,10 @@ def hotline_error():
         resp.say(hotline_translation["error_message"][language], voice="woman", language=language)
 
     return str(resp)
+
+
+
+
+
 
 

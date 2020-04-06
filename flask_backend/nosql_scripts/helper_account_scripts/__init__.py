@@ -20,6 +20,9 @@ def add_helper_account(email, password, zip_code, country="Germany"):
         new_helper = {
             "email": email,
             "email_verified": False,
+            "phone_number": "",
+            "phone_number_verified": False,
+
             "hashed_password": support_functions.hash_password(password),
             "zip_code": zip_code,
             "country": country,
@@ -122,6 +125,7 @@ def modify_helper_account(email, **kwargs):
 
         modified_helper_account = {
             "email": new_email,
+
             "hashed_password": new_password,
             "zip_code": new_zip_code,
             "country": new_country,
@@ -150,7 +154,7 @@ def modify_helper_account(email, **kwargs):
 
 if __name__ == "__main__":
     t1 = time.time()
-    print(add_helper_account(TEST_EMAIL, TEST_PASSWORD, TEST_ZIP_CODE))
+    # print(add_helper_account(TEST_EMAIL, TEST_PASSWORD, TEST_ZIP_CODE))
     t2 = time.time()
 
     print(f"total: {t2 - t1} seconds")

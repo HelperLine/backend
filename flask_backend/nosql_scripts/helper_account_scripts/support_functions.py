@@ -3,17 +3,18 @@ from flask_backend import bcrypt, BCRYPT_SALT, status, helper_accounts_collectio
 import random
 
 
-def generate_random_key(length=32):
+def generate_random_key(length=32, numeric=False):
     possible_characters = []
 
     # Characters '0' through '9'
     possible_characters += [chr(x) for x in range(48, 58)]
 
-    # Characters 'A' through 'Z'
-    possible_characters += [chr(x) for x in range(65, 91)]
+    if not numeric:
+        # Characters 'A' through 'Z'
+        possible_characters += [chr(x) for x in range(65, 91)]
 
-    # Characters 'a' through 'z'
-    possible_characters += [chr(x) for x in range(97, 123)]
+        # Characters 'a' through 'z'
+        possible_characters += [chr(x) for x in range(97, 123)]
 
     random_key = ""
 
@@ -36,6 +37,10 @@ def get_all_helper_data(email):
 
     account_dict = {
         "email_verified": helper_account["email_verified"],
+
+        "phone_number": helper_account["phone_number"],
+        "phone_number_verified": helper_account["phone_number_verified"],
+
         "zip_code": helper_account["zip_code"],
         "country": helper_account["country"],
     }
@@ -125,5 +130,6 @@ def get_adjacent_zip_codes(zip_code):
 
 
 if __name__ == "__main__":
-    get_adjacent_zip_codes("80637")
+    print(get_all_helper_data("makowskimoritz@gmail.com"))
+
 

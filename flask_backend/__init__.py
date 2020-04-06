@@ -49,6 +49,7 @@ token_database = client.get_database("token_database")
 helper_api_keys_collection = token_database["helper_api_keys"]
 admin_api_keys_collection = token_database["admin_api_keys"]
 email_tokens_collection = token_database["email_tokens"]
+phone_tokens_collection = token_database["phone_tokens"]
 
 queue_database = client.get_database("queue_database")
 call_queue = queue_database["call_queue"]
@@ -74,12 +75,14 @@ def status(text, **kwargs):
     return status_dict
 
 
-@app.before_request
-def before_request():
-    if request.url.startswith('http://'):
-        url = request.url.replace('http://', 'https://', 1)
-        code = 301
-        return redirect(url, code=code)
+if os.getenv("MONGODB_WRITE_CONNECTION_STRING") is not None:
+    @app.before_request
+    def before_request():
+        if request.url.startswith('http://'):
+            url = request.url.replace('http://', 'https://', 1)
+            code = 301
+            return redirect(url, code=code)
+
 
 
 from flask_backend.routes import helper_account_routes, helper_call_routes, hotline_routes, react_routes
