@@ -1,5 +1,5 @@
 
-[*See Frontend Repository*](https://github.com/dostuffthatmatters/HelperLine-Frontend)
+[*See Frontend Repository*](https://github.com/helperline/web-frontend)
 
 ## HelperLine (Backend) - A Hotline for People without Internet Access
 
