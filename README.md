@@ -1,10 +1,20 @@
-# Hilfe-am-Ohr Backend
 
-New Backend for the Hilfe-am-Ohr-Hotline. **New version:** Merged and fully based on MongoDB.
+[*See Frontend Repository*](https://github.com/dostuffthatmatters/HelperLine-Frontend)
 
-**Work in progress!**
+## HelperLine (Backend) - A Hotline for People without Internet Access
 
-<br/>
+#### Tech Stack
+
+* React Frontend
+* Flask Backend
+
+* Heroku (AWS) Cloud Hosting
+* Heroku Postgres Database
+
+* Twilio for SMS, Phone and Email Communication
+* Google Maps for Map Components
+
+<br/><br/>
 
 ## Description of our Matching 
 
