@@ -68,4 +68,3 @@ def verify_register_form(email, password, zip_code, country, new_account=True):
         return status('email already taken')
 
     return status('ok')
-

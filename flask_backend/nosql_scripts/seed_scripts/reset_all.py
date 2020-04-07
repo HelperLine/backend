@@ -19,5 +19,5 @@ def delete_all():
     email_tokens_collection.delete_many({})
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     delete_all()

@@ -9,18 +9,18 @@ from flask_backend.routes.hotline_translation import hotline_translation
 from flask_backend.routes import support_functions
 
 language_translation = {
-    "de": "german",
-    "en-gb": "english"
+    'de': 'german',
+    'en-gb': 'english'
 }
 
 def twilio_language_to_string(twilio_language):
     if twilio_language not in language_translation:
-        return ""
+        return ''
     else:
         return language_translation[twilio_language]
 
 
-@app.route("/hotline", methods=['GET', 'POST'])
+@app.route('/hotline', methods=['GET', 'POST'])
 def initial_endpoint():
 
     # STEP 1) Choose Language
@@ -37,12 +37,12 @@ def initial_endpoint():
             resp.redirect(f'/hotline/en-gb/question/1')
             return str(resp)
         else:
-            for language in ["de", "en-gb"]:
-                resp.say(hotline_translation["unknown_option"][language], voice="woman", language=language)
+            for language in ['de', 'en-gb']:
+                resp.say(hotline_translation['unknown_option'][language], voice='woman', language=language)
 
     gather = Gather(num_digits=1)
-    for language in ["de", "en-gb"]:
-        gather.say(hotline_translation["choose_language"][language], voice="woman", language=language)
+    for language in ['de', 'en-gb']:
+        gather.say(hotline_translation['choose_language'][language], voice='woman', language=language)
     resp.append(gather)
 
     resp.redirect(f'/hotline')
@@ -50,7 +50,7 @@ def initial_endpoint():
     return str(resp)
 
 
-@app.route("/hotline/<language>/question/1", methods=['GET', 'POST'])
+@app.route('/hotline/<language>/question/1', methods=['GET', 'POST'])
 def hotline_question_1(language):
 
     # STEP 2) Local Help or Independet of Location?
@@ -63,18 +63,18 @@ def hotline_question_1(language):
         choice = request.values['Digits']
 
         if choice == '1':
-            resp.redirect(f"/hotline/{language}/question/2")
+            resp.redirect(f'/hotline/{language}/question/2')
             return str(resp)
         elif choice == '2':
-            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)["Caller"])["caller_id"]
-            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=False)["call_id"]
-            resp.redirect(f"/hotline/{language}/question/3/{call_id}")
+            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)['Caller'])['caller_id']
+            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=False)['call_id']
+            resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
         else:
-            resp.say(hotline_translation["unknown_option"][language], voice="woman", language=language)
+            resp.say(hotline_translation['unknown_option'][language], voice='woman', language=language)
 
     gather = Gather(num_digits=1)
-    gather.say(hotline_translation["question_1_text_1"][language], voice="woman", language=language)
+    gather.say(hotline_translation['question_1_text_1'][language], voice='woman', language=language)
     resp.append(gather)
 
     resp.redirect(f'/hotline/{language}/question/1')
@@ -82,27 +82,27 @@ def hotline_question_1(language):
     return str(resp)
 
 
-@app.route("/hotline/<language>/question/2", methods=['GET', 'POST'])
+@app.route('/hotline/<language>/question/2', methods=['GET', 'POST'])
 def hotline_question_2(language):
 
     # STEP 2.5) Enter zip code -> generate caller and call record
 
     resp = VoiceResponse()
-    gather = Gather(num_digits=6, finish_on_key="#")
+    gather = Gather(num_digits=6, finish_on_key='#')
 
     if 'Digits' in request.values:
 
         zip_code = request.values['Digits']
         finished_on_key = request.values['FinishedOnKey']
 
-        if len(zip_code) == 5 and finished_on_key == "#":
+        if len(zip_code) == 5 and finished_on_key == '#':
 
-            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)["Caller"])["caller_id"]
-            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=True, zip_code=zip_code)["call_id"]
+            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)['Caller'])['caller_id']
+            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=True, zip_code=zip_code)['call_id']
             resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
 
-    gather.say(hotline_translation["question_2_text_1"][language], voice="woman", language=language)
+    gather.say(hotline_translation['question_2_text_1'][language], voice='woman', language=language)
     resp.append(gather)
 
     resp.redirect(f'/hotline/{language}/question/2')
@@ -110,7 +110,7 @@ def hotline_question_2(language):
     return str(resp)
 
 
-@app.route("/hotline/<language>/question/3/<call_id>", methods=['GET', 'POST'])
+@app.route('/hotline/<language>/question/3/<call_id>', methods=['GET', 'POST'])
 def hotline_question_3(language, call_id):
 
     # STEP 3) Are we allowed to call you back for feedback?
@@ -121,17 +121,17 @@ def hotline_question_3(language, call_id):
     if 'Digits' in request.values:
         choice = request.values['Digits']
 
-        if choice in ["1", "2"]:
-            call_scripts.set_feeback(call_id, (choice == "1"))
-            resp.redirect(f"/hotline/{language}/question/4/{call_id}")
+        if choice in ['1', '2']:
+            call_scripts.set_feeback(call_id, (choice == '1'))
+            resp.redirect(f'/hotline/{language}/question/4/{call_id}')
             return str(resp)
         else:
-            resp.say(hotline_translation["unknown_option"][language], voice="woman", language=language)
-            gather.say(hotline_translation["question_3_text_2"][language], voice="woman", language=language)
+            resp.say(hotline_translation['unknown_option'][language], voice='woman', language=language)
+            gather.say(hotline_translation['question_3_text_2'][language], voice='woman', language=language)
     else:
-        gather.say(hotline_translation["question_3_text_1"][language], voice="woman", language=language)
+        gather.say(hotline_translation['question_3_text_1'][language], voice='woman', language=language)
 
-    gather.say(hotline_translation["question_3_text_3"][language], voice="woman", language=language)
+    gather.say(hotline_translation['question_3_text_3'][language], voice='woman', language=language)
     resp.append(gather)
 
     resp.redirect(f'/hotline/{language}/question/3/{call_id}')
@@ -139,7 +139,7 @@ def hotline_question_3(language, call_id):
     return str(resp)
 
 
-@app.route("/hotline/<language>/question/4/<call_id>", methods=['GET', 'POST'])
+@app.route('/hotline/<language>/question/4/<call_id>', methods=['GET', 'POST'])
 def hotline_question_4(language, call_id):
 
     # STEP 3) Are we allowed to call you back for feedback?
@@ -150,20 +150,20 @@ def hotline_question_4(language, call_id):
     if 'Digits' in request.values:
         choice = request.values['Digits']
 
-        if choice == "1":
+        if choice == '1':
             # TODO: Async Task - maybe Celery?
             call_scripts.set_confirmed(call_id, True)
-            resp.say(hotline_translation["question_4_answer_confirm"][language], voice="woman", language=language)
+            resp.say(hotline_translation['question_4_answer_confirm'][language], voice='woman', language=language)
             return str(resp)
-        elif choice == "2":
+        elif choice == '2':
             # TODO: Async Task - maybe Celery?
             call_scripts.set_confirmed(call_id, False)
-            resp.say(hotline_translation["question_4_answer_cancel"][language], voice="woman", language=language)
+            resp.say(hotline_translation['question_4_answer_cancel'][language], voice='woman', language=language)
             return str(resp)
         else:
-            resp.say(hotline_translation["unknown_option"][language], voice="woman", language=language)
+            resp.say(hotline_translation['unknown_option'][language], voice='woman', language=language)
 
-    gather.say(hotline_translation["question_4_text_1"][language], voice="woman", language=language)
+    gather.say(hotline_translation['question_4_text_1'][language], voice='woman', language=language)
     resp.append(gather)
 
     resp.redirect(f'/hotline/{language}/question/4/{call_id}')
@@ -172,21 +172,14 @@ def hotline_question_4(language, call_id):
 
 
 
-@app.route("/hotline/error", methods=['GET', 'POST'])
+@app.route('/hotline/error', methods=['GET', 'POST'])
 def hotline_error():
 
     # Error response in case the server does not produce a valid response at some point
 
     resp = VoiceResponse()
 
-    for language in ["de", "en-gb"]:
-        resp.say(hotline_translation["error_message"][language], voice="woman", language=language)
+    for language in ['de', 'en-gb']:
+        resp.say(hotline_translation['error_message'][language], voice='woman', language=language)
 
     return str(resp)
-
-
-
-
-
-
-

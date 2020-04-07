@@ -11,9 +11,9 @@ global_timeout_timedelta = timedelta(seconds=global_timeout_seconds)
 
 
 def records_to_list(records):
-    # in: [{"call_id": "A"}, {"call_id": "B"}]
-    # out: ["A", "B"]
-    return [record["call_id"] for record in records]
+    # in: [{'call_id': 'A'}, {'call_id': 'B'}]
+    # out: ['A', 'B']
+    return [record['call_id'] for record in records]
 
 
 def lists_match(list_1, list_2):

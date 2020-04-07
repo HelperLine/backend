@@ -1,5 +1,5 @@
 
-from flask_backend import status, email_tokens_collection, helper_accounts_collection, phone_tokens_collection
+from flask_backend import status, helper_accounts_collection, phone_tokens_collection
 from flask_backend.nosql_scripts.helper_account_scripts import support_functions
 
 from pymongo import DeleteMany, InsertOne
@@ -79,4 +79,3 @@ if __name__ == '__main__':
     # confirm_email('iu694Wfs8p7zVggbWeuLIPXplEhQoMHMXeDriOhMl0WRfSQSGhgDzLC0BIsJm32s')
 
     print(trigger_phone_number_verification('5e8a66bddda9d4c16f9ad9e5'))
-

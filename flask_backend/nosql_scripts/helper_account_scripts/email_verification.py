@@ -16,17 +16,17 @@ def send_verification_mail(email, verification_token):
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
-        return status("ok")
+        return status('ok')
     except Exception as e:
         print(e)
-        return status("email sending failed")
+        return status('email sending failed')
 
 
 def verify_email(verification_token):
-    record = email_tokens_collection.find_one({"token": verification_token})
+    record = email_tokens_collection.find_one({'token': verification_token})
     if record is not None:
-        helper_accounts_collection.update_one({"_id": record["helper_id"]}, {"$set": {"email_verified": True}})
-        email_tokens_collection.delete_many({"helper_id": record["helper_id"]})
+        helper_accounts_collection.update_one({'_id': record['helper_id']}, {'$set': {'email_verified': True}})
+        email_tokens_collection.delete_many({'helper_id': record['helper_id']})
 
 
 def trigger_email_verification(helper_id, email):
@@ -36,9 +36,9 @@ def trigger_email_verification(helper_id, email):
     verification_token = support_functions.generate_random_key(length=64)
 
     # Create new token record
-    record = {"helper_id": helper_id, "token": verification_token}
+    record = {'helper_id': helper_id, 'token': verification_token}
     operations = [
-        DeleteMany({"helper_id": helper_id}),
+        DeleteMany({'helper_id': helper_id}),
         InsertOne(record)
     ]
     email_tokens_collection.bulk_write(operations, ordered=True)
@@ -47,12 +47,10 @@ def trigger_email_verification(helper_id, email):
     return send_verification_mail(email, verification_token)
 
 
-if __name__ == "__main__":
-    # trigger_email_verification("1402", TEST_EMAIL)
+if __name__ == '__main__':
+    # trigger_email_verification('1402', TEST_EMAIL)
     # email_tokens_collection.delete_many({})
 
-    # confirm_email("iu694Wfs8p7zVggbWeuLIPXplEhQoMHMXeDriOhMl0WRfSQSGhgDzLC0BIsJm32s")
+    # confirm_email('iu694Wfs8p7zVggbWeuLIPXplEhQoMHMXeDriOhMl0WRfSQSGhgDzLC0BIsJm32s')
 
     pass
-
-

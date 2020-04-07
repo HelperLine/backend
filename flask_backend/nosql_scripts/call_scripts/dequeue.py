@@ -7,7 +7,7 @@ from flask_backend.nosql_scripts.helper_account_scripts.support_functions import
 from datetime import datetime
 from bson import ObjectId
 
-# triggered when user clicks "accept call"
+# triggered when user clicks 'accept call'
 # filter options passed as arguments!
 # status with call_id is begin returned
 
@@ -18,35 +18,35 @@ def dequeue(helper_id, zip_code=None,
     current_timestamp = datetime.now()
 
     if only_local_calls and only_global_calls:
-        return status("invalid function call")
+        return status('invalid function call')
 
 
 
     # Step 1) Find the helpers zip_code
 
     if any([e is None] for e in [zip_code, only_local_calls, only_global_calls, accept_english, accept_german]) is None:
-        helper = helper_accounts_collection.find_one({"_id": ObjectId(helper_id)})
+        helper = helper_accounts_collection.find_one({'_id': ObjectId(helper_id)})
         if helper is None:
-            return status("helper id invalid")
+            return status('helper id invalid')
 
-        zip_code = helper["zip_code"] if (zip_code is None) else zip_code
-        only_local_calls = helper["filter_type_local"] if (only_local_calls is None) else only_local_calls
-        only_global_calls = helper["filter_type_global"] if (only_global_calls is None) else only_global_calls
-        accept_german = helper["filter_language_german"] if (accept_german is None) else accept_german
-        accept_english = helper["filter_language_english"] if (accept_english is None) else accept_english
+        zip_code = helper['zip_code'] if (zip_code is None) else zip_code
+        only_local_calls = helper['filter_type_local'] if (only_local_calls is None) else only_local_calls
+        only_global_calls = helper['filter_type_global'] if (only_global_calls is None) else only_global_calls
+        accept_german = helper['filter_language_german'] if (accept_german is None) else accept_german
+        accept_english = helper['filter_language_english'] if (accept_english is None) else accept_english
 
     language_list = []
-    language_list += ["german"] if accept_german else []
-    language_list += ["english"] if accept_english else []
+    language_list += ['german'] if accept_german else []
+    language_list += ['english'] if accept_english else []
 
-    zip_codes_list = get_adjacent_zip_codes(zip_code) if (zip_code != "") else []
+    zip_codes_list = get_adjacent_zip_codes(zip_code) if (zip_code != '') else []
 
-    print(f"zip_code: {zip_code}")
-    print(f"zip_codes: {zip_codes_list}")
+    print(f'zip_code: {zip_code}')
+    print(f'zip_codes: {zip_codes_list}')
 
     projection_dict = {
-        "_id": 0,
-        "call_id": 1
+        '_id': 0,
+        'call_id': 1
     }
 
 
@@ -56,48 +56,48 @@ def dequeue(helper_id, zip_code=None,
     if only_local_calls:
 
         filter_dict = {
-            "local": True,
-            "zip_code": {"$in": zip_codes_list},
-            "language": {"$in": language_list}
+            'local': True,
+            'zip_code': {'$in': zip_codes_list},
+            'language': {'$in': language_list}
         }
 
         call = call_queue.find_one_and_delete(
             filter_dict, projection_dict,
-            sort=[("timestamp_received", 1)],
+            sort=[('timestamp_received', 1)],
         )
 
     elif only_global_calls:
 
         filter_dict = {
-            "local": False,
-            "language": {"$in": language_list}
+            'local': False,
+            'language': {'$in': language_list}
         }
 
         call = call_queue.find_one_and_delete(
             filter_dict, projection_dict,
-            sort=[("timestamp_received", 1)],
+            sort=[('timestamp_received', 1)],
         )
 
     else:
         # 1. Urgent Queue
         call = call_queue.find_one_and_delete(
-            {"timestamp_received": {"$lt": current_timestamp - support_functions.global_timeout_timedelta}},
+            {'timestamp_received': {'$lt': current_timestamp - support_functions.global_timeout_timedelta}},
             projection_dict,
-            sort=[("timestamp_received", 1)],
+            sort=[('timestamp_received', 1)],
         )
 
         # 2. Local Queue
         if call is None:
 
             filter_dict = {
-                "local": True,
-                "zip_code": {"$in": zip_codes_list},
-                "language": {"$in": language_list}
+                'local': True,
+                'zip_code': {'$in': zip_codes_list},
+                'language': {'$in': language_list}
             }
 
             call = call_queue.find_one_and_delete(
                 filter_dict, projection_dict,
-                sort=[("timestamp_received", 1)],
+                sort=[('timestamp_received', 1)],
             )
 
         # 3. Global Queue
@@ -105,45 +105,44 @@ def dequeue(helper_id, zip_code=None,
             # Or chain needed so that calls in other regions which
             # are not in the global queue yet get assigned
             call = call_queue.find_one_and_delete(
-                {"$or": [
-                    {"local": True, "timestamp_received": {"$lt": current_timestamp - support_functions.local_timeout_timedelta}},
-                    {"local": False}
+                {'$or': [
+                    {'local': True, 'timestamp_received': {'$lt': current_timestamp - support_functions.local_timeout_timedelta}},
+                    {'local': False}
                 ]},
                 projection_dict,
-                sort=[("timestamp_received", 1)],
+                sort=[('timestamp_received', 1)],
             )
 
     if call is None:
-        return status("currently no call available")
+        return status('currently no call available')
 
-    call_id = call["call_id"]
+    call_id = call['call_id']
 
 
 
     # Step 3) Update call (helper_id, status, timestamp_accepted)
     calls_collection.update_one(
-        {"_id": ObjectId(call_id)},
-        {"$set": {"helper_id": ObjectId(helper_id), "status": "accepted", "timestamp_accepted": current_timestamp}})
+        {'_id': ObjectId(call_id)},
+        {'$set': {'helper_id': ObjectId(helper_id), 'status': 'accepted', 'timestamp_accepted': current_timestamp}})
 
 
 
     # Step 4) Update helper (calls)
     helper_accounts_collection.update_one(
-        {"_id": ObjectId(helper_id)},
-        {"$push": {"calls": ObjectId(call_id)}})
+        {'_id': ObjectId(helper_id)},
+        {'$push': {'calls': ObjectId(call_id)}})
 
 
 
-    # Step 5) Add helper behavior (helper_id, call_id, timestamp, action="accepted"
+    # Step 5) Add helper behavior (helper_id, call_id, timestamp, action='accepted'
     new_behavior_log = {
-        "helper_id": ObjectId(helper_id),
-        "call_id": ObjectId(call_id),
-        "timestamp": current_timestamp,
-        "action": "accepted",
+        'helper_id': ObjectId(helper_id),
+        'call_id': ObjectId(call_id),
+        'timestamp': current_timestamp,
+        'action': 'accepted',
     }
     helper_behavior_collection.insert_one(new_behavior_log)
 
 
 
-    return status("ok")
-
+    return status('ok')
