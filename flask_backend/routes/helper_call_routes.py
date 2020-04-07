@@ -27,7 +27,7 @@ def accept_call_route():
         return status('invalid request')
 
     dequeue_result = dequeue.dequeue(
-        helper['_id'],
+        str(helper['_id']),
         zip_code=helper['zip_code'],
         only_local_calls=params_dict['filter_type_local'],
         only_global_calls=params_dict['filter_type_global'],
@@ -38,7 +38,9 @@ def accept_call_route():
     if dequeue_result['status'] != 'ok':
         return dequeue_result
     else:
-        return get_all_helper_data(helper_id=helper['_id'])
+        return_result = get_all_helper_data(helper_id=str(helper['_id']))
+        print(return_result)
+        return return_result
 
 
 @app.route('/backend/calls/fulfill', methods=['POST'])

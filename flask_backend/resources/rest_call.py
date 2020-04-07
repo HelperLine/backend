@@ -51,6 +51,11 @@ class RESTCall(Resource):
         if 'action' not in params_dict:
             return status('call_action missing')
 
+
+        if params_dict["action"] in ["fulfill", "reject"] and call["status"] == "fulfilled":
+            return status('cannot change a fulfilled call')
+
+
         if params_dict["action"] == "fulfill":
             fulfill_call(str(params_dict["call_id"]), str(call["helper_id"]))
 

@@ -114,6 +114,7 @@ def reject_call(call_id, helper_id):
     call_update = {
         'status': 'pending',
         'helper_id': 0,
+        'comment': '',
     }
     calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': call_update})
     enqueue.enqueue(call_id)

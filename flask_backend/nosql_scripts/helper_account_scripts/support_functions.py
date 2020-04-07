@@ -63,7 +63,7 @@ def get_all_helper_data(email=None, helper_id=None):
     performance_dict = get_helper_performance_dict(helper_account, calls_dict)
 
     return status('ok',
-                  email=email,
+                  email=helper_account["email"],
                   account=account_dict,
                   calls=calls_dict,
                   performance=performance_dict,
