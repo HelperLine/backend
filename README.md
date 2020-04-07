@@ -1,3 +1,4 @@
+
 [*See Project Details*](https://helperline.github.io/project/)
 
 [*See Frontend Repository*](https://github.com/helperline/web-frontend)
@@ -14,12 +15,4 @@
 
 * Twilio for SMS, Phone and Email Communication
 * Google Maps for Map Components
-
-<br/><br/>
-
-## Description of our Matching 
-
-![](docs/images/Call_Assignment_English.svg)
-
-![](docs/images/Hotline_Helper_HMI_English.svg)
 
