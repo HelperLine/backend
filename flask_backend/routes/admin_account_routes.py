@@ -15,8 +15,6 @@ def backend_admin_login():
     # Artificial delay to further prevent brute forcing
     time.sleep(0.05)
 
-    print(params_dict)
-
     email = params_dict['admin_email']
     password = params_dict['admin_password']
     api_key = params_dict['admin_api_key']

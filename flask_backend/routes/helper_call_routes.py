@@ -26,8 +26,6 @@ def accept_call_route():
             'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
         return status('invalid request')
 
-    print(f'helper: {helper}')
-
     dequeue_result = dequeue.dequeue(
         helper['_id'],
         zip_code=helper['zip_code'],

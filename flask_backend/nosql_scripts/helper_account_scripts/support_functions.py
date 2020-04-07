@@ -112,16 +112,22 @@ def get_helper_calls_dict(helper_id):
     projected_list = [{
         'call_id': str(call['_id']),
         'status': call['status'],
-        'timestamp_received': call['timestamp_received'],
-        'timestamp_accepted': call['timestamp_accepted'],
-        'timestamp_fulfilled': call['timestamp_fulfilled'],
+        'timestamp_received': datetime_to_string(call['timestamp_received']),
+        'timestamp_accepted': datetime_to_string(call['timestamp_accepted']),
+        'timestamp_fulfilled': datetime_to_string(call['timestamp_fulfilled']),
         'comment': call['comment'],
         'phone_number': call['caller'][0]['phone_number']
     } for call in raw_list]
 
+    accepted_calls_list = list(filter(lambda x: x['status'] == 'accepted', projected_list))
+    accepted_calls_list.sort(key=(lambda x: x["timestamp_accepted"]), reverse=True)
+
+    fulfilled_calls_list = list(filter(lambda x: x['status'] == 'fulfilled', projected_list))
+    fulfilled_calls_list.sort(key=(lambda x: x["timestamp_fulfilled"]), reverse=True)
+
     return {
-        'accepted': list(filter(lambda x: x['status'] == 'accepted', projected_list)),
-        'fulfilled': list(filter(lambda x: x['status'] == 'fulfilled', projected_list)),
+        'accepted': accepted_calls_list,
+        'fulfilled': fulfilled_calls_list,
     }
 
 
@@ -180,6 +186,10 @@ def get_adjacent_zip_codes(zip_code):
     zip_code_final += zip_codes
 
     return [record[0] for record in zip_code_final] + [zip_code]
+
+
+def datetime_to_string(datetime_object):
+    return datetime_object.strftime("%d.%m.%y, %H:%M")
 
 
 if __name__ == '__main__':

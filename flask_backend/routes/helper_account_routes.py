@@ -18,8 +18,6 @@ def backend_helper_login():
     # Artificial delay to further prevent brute forcing
     time.sleep(0.05)
 
-    print(params_dict)
-
     email = params_dict['email']
     password = params_dict['password']
     api_key = params_dict['api_key']
@@ -122,8 +120,6 @@ def hotline_phone_verification():
 
         phone_number = support_functions.get_params_dict(request)['Caller']
         verification_result = phone_verification.verify_phone_number(token=token, phone_number=phone_number)
-
-        print(verification_result)
 
         if verification_result['status'] == 'ok':
             resp.say('Your phone number has been confirmed successfully. Goodbye', voice='woman', language='en-gb')
