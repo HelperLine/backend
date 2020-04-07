@@ -8,7 +8,16 @@ from flask_backend.routes.hotline_translation import hotline_translation
 
 from flask_backend.routes import support_functions
 
+language_translation = {
+    "de": "german",
+    "en-gb": "english"
+}
 
+def twilio_language_to_string(twilio_language):
+    if twilio_language not in language_translation:
+        return ""
+    else:
+        return language_translation[twilio_language]
 
 
 @app.route("/hotline", methods=['GET', 'POST'])
@@ -57,8 +66,8 @@ def hotline_question_1(language):
             resp.redirect(f"/hotline/{language}/question/2")
             return str(resp)
         elif choice == '2':
-            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)["Caller"], "", language)["caller_id"]
-            call_id = call_scripts.add_call(caller_id, False)["call_id"]
+            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)["Caller"])["caller_id"]
+            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=False)["call_id"]
             resp.redirect(f"/hotline/{language}/question/3/{call_id}")
             return str(resp)
         else:
@@ -88,8 +97,8 @@ def hotline_question_2(language):
 
         if len(zip_code) == 5 and finished_on_key == "#":
 
-            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)["Caller"], zip_code, language)["caller_id"]
-            call_id = call_scripts.add_call(caller_id, True)["call_id"]
+            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)["Caller"])["caller_id"]
+            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=True, zip_code=zip_code)["call_id"]
             resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
 

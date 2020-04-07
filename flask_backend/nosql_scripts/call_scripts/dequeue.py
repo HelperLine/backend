@@ -2,6 +2,7 @@
 from flask_backend import status, call_queue, helper_accounts_collection, helper_behavior_collection, calls_collection
 
 from flask_backend.nosql_scripts.call_scripts import support_functions
+from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_adjacent_zip_codes
 
 from datetime import datetime
 from bson import ObjectId
@@ -10,7 +11,9 @@ from bson import ObjectId
 # filter options passed as arguments!
 # status with call_id is begin returned
 
-def dequeue(helper_id, zip_code=None, only_local_calls=False, only_global_calls=False):
+def dequeue(helper_id, zip_code=None,
+            only_local_calls=None, only_global_calls=None,
+            accept_german=None, accept_english=None):
 
     current_timestamp = datetime.now()
 
@@ -21,30 +24,57 @@ def dequeue(helper_id, zip_code=None, only_local_calls=False, only_global_calls=
 
     # Step 1) Find the helpers zip_code
 
-    # If the zip_code is available we can pass it as
-    # a parameter, if not it will be queried in here.
-    if not only_global_calls and zip_code is None:
-        helper = helper_accounts_collection.find_one({"_id": ObjectId(helper_id)}, {"_id": 0, "zip_code": 1})
+    if any([e is None] for e in [zip_code, only_local_calls, only_global_calls, accept_english, accept_german]) is None:
+        helper = helper_accounts_collection.find_one({"_id": ObjectId(helper_id)})
         if helper is None:
             return status("helper id invalid")
-        zip_code = helper["zip_code"]
+
+        zip_code = helper["zip_code"] if (zip_code is None) else zip_code
+        only_local_calls = helper["filter_type_local"] if (only_local_calls is None) else only_local_calls
+        only_global_calls = helper["filter_type_global"] if (only_global_calls is None) else only_global_calls
+        accept_german = helper["filter_language_german"] if (accept_german is None) else accept_german
+        accept_english = helper["filter_language_english"] if (accept_english is None) else accept_english
+
+    language_list = []
+    language_list += ["german"] if accept_german else []
+    language_list += ["english"] if accept_english else []
+
+    zip_codes_list = get_adjacent_zip_codes(zip_code) if (zip_code != "") else []
+
+    print(f"zip_code: {zip_code}")
+    print(f"zip_codes: {zip_codes_list}")
+
+    projection_dict = {
+        "_id": 0,
+        "call_id": 1
+    }
 
 
 
     # Step 2) Find Call
 
     if only_local_calls:
-        # noinspection PyUnboundLocalVariable
+
+        filter_dict = {
+            "local": True,
+            "zip_code": {"$in": zip_codes_list},
+            "language": {"$in": language_list}
+        }
+
         call = call_queue.find_one_and_delete(
-            {"local": True, "zip_code": zip_code},
-            {"_id": 0, "call_id": 1},
+            filter_dict, projection_dict,
             sort=[("timestamp_received", 1)],
         )
 
     elif only_global_calls:
+
+        filter_dict = {
+            "local": False,
+            "language": {"$in": language_list}
+        }
+
         call = call_queue.find_one_and_delete(
-            {"local": False},
-            {"_id": 0, "call_id": 1},
+            filter_dict, projection_dict,
             sort=[("timestamp_received", 1)],
         )
 
@@ -52,16 +82,21 @@ def dequeue(helper_id, zip_code=None, only_local_calls=False, only_global_calls=
         # 1. Urgent Queue
         call = call_queue.find_one_and_delete(
             {"timestamp_received": {"$lt": current_timestamp - support_functions.global_timeout_timedelta}},
-            {"_id": 0, "call_id": 1},
+            projection_dict,
             sort=[("timestamp_received", 1)],
         )
 
         # 2. Local Queue
         if call is None:
-            # noinspection PyUnboundLocalVariable
+
+            filter_dict = {
+                "local": True,
+                "zip_code": {"$in": zip_codes_list},
+                "language": {"$in": language_list}
+            }
+
             call = call_queue.find_one_and_delete(
-                {"local": True, "zip_code": zip_code},
-                {"_id": 0, "call_id": 1},
+                filter_dict, projection_dict,
                 sort=[("timestamp_received", 1)],
             )
 
@@ -74,7 +109,7 @@ def dequeue(helper_id, zip_code=None, only_local_calls=False, only_global_calls=
                     {"local": True, "timestamp_received": {"$lt": current_timestamp - support_functions.local_timeout_timedelta}},
                     {"local": False}
                 ]},
-                {"_id": 0, "call_id": 1},
+                projection_dict,
                 sort=[("timestamp_received", 1)],
             )
 
@@ -85,23 +120,24 @@ def dequeue(helper_id, zip_code=None, only_local_calls=False, only_global_calls=
 
 
 
-    # Step 2) Update call (helper_id, status, timestamp_accepted)
+    # Step 3) Update call (helper_id, status, timestamp_accepted)
     calls_collection.update_one(
         {"_id": ObjectId(call_id)},
-        {"$set": {"helper_id": helper_id, "status": "accepted", "timestamp_accepted": current_timestamp}})
+        {"$set": {"helper_id": ObjectId(helper_id), "status": "accepted", "timestamp_accepted": current_timestamp}})
 
 
-    # Step 3) Update helper (calls)
+
+    # Step 4) Update helper (calls)
     helper_accounts_collection.update_one(
         {"_id": ObjectId(helper_id)},
-        {"$push": {"calls": call_id}})
+        {"$push": {"calls": ObjectId(call_id)}})
 
 
 
-    # Step 4) Add helper behavior (helper_id, call_id, timestamp, action="accepted"
+    # Step 5) Add helper behavior (helper_id, call_id, timestamp, action="accepted"
     new_behavior_log = {
-        "helper_id": helper_id,
-        "call_id": call_id,
+        "helper_id": ObjectId(helper_id),
+        "call_id": ObjectId(call_id),
         "timestamp": current_timestamp,
         "action": "accepted",
     }
@@ -109,5 +145,5 @@ def dequeue(helper_id, zip_code=None, only_local_calls=False, only_global_calls=
 
 
 
-    return status("ok", call_id=call_id)
+    return status("ok")
 

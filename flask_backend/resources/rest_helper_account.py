@@ -1,5 +1,5 @@
 from flask_restful import Resource
-from flask_backend.routes import support_functions as support_function_rest
+from flask_backend.routes import support_functions as support_functions_rest
 
 from flask import request
 from flask_backend import status
@@ -16,7 +16,7 @@ class RESTAccount(Resource):
 
     def get(self):
         # Get all infos for a specific account
-        params_dict = support_function_rest.get_params_dict(request)
+        params_dict = support_functions_rest.get_params_dict(request)
 
         print("lololo")
         print(params_dict)
@@ -29,7 +29,7 @@ class RESTAccount(Resource):
 
     def post(self):
         # Create a new account
-        params_dict = support_function_rest.get_params_dict(request, print_out=True)
+        params_dict = support_functions_rest.get_params_dict(request, print_out=True)
 
         for key in ["email", "password", "zip_code", "country"]:
             if key not in params_dict:
@@ -44,7 +44,7 @@ class RESTAccount(Resource):
 
     def put(self):
         # Modify an existing account
-        params_dict = support_function_rest.get_params_dict(request, print_out=True)
+        params_dict = support_functions_rest.get_params_dict(request, print_out=True)
 
         if api_authentication.helper_login_api_key(params_dict["email"], params_dict["api_key"])["status"] != "ok":
             return {"status": "invalid request"}

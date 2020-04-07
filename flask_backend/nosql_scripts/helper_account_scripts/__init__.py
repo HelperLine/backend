@@ -20,9 +20,10 @@ def add_helper_account(email, password, zip_code, country="Germany"):
         new_helper = {
             "email": email,
             "email_verified": False,
+
             "phone_number": "",
-            "phone_number_verified": False,  # the user called and entered the correct code
-            "phone_number_confirmed": False,  # confirmed = afterwards the user clicks "confirm" inside the popup
+            "phone_number_verified": False,  # Verfication from our side (Call and enter confirmation code)
+            "phone_number_confirmed": False,  # Confirmation from the volunteer ("Is this your phone number?")
 
             "hashed_password": support_functions.hash_password(password),
             "zip_code": zip_code,
@@ -34,6 +35,9 @@ def add_helper_account(email, password, zip_code, country="Germany"):
             "filter_type_global": False,
             "filter_language_german": False,
             "filter_language_english": False,
+
+            "online": False,
+            "last_switched_online": datetime.datetime.now()
         }
 
         try:

@@ -35,11 +35,11 @@ client = MongoClient(MONGODB_WRITE_CONNECTION_STRING)
 
 account_database = client.get_database("account_database")
 admin_accounts_collection = account_database["admin_accounts"]
-caller_accounts_collection = account_database["caller_accounts"]
 helper_accounts_collection = account_database["helper_accounts"]
 
 call_database = client.get_database("call_database")
 calls_collection = call_database["calls"]
+caller_accounts_collection = call_database["caller_accounts"]
 helper_behavior_collection = call_database["helper_behavior"]
 
 zip_code_dataset = client.get_database("zip_code_dataset")

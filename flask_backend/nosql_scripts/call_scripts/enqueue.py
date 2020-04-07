@@ -1,47 +1,44 @@
-from flask_backend import status, call_queue, calls_collection
+from flask_backend import status, call_queue, calls_collection, caller_accounts_collection
 
 # These functions will just be called internally!
+from bson import ObjectId
 
 
-def enqueue(call_id, timestamp_received=None, local=None, zip_code=None):
+def enqueue(call_id):
 
-    if (timestamp_received is None) or (local is None) or (zip_code is None):
-        call = calls_collection.find_one(
-            {"_id": call_id},
-            {"_id": 0, "timestamp_received": 1, "local": 1, "zip_code": 1}
-        )
-        if call is None:
-            return status("call id invalid")
+    call = calls_collection.find_one({"_id": ObjectId(call_id)})
 
-        if ("timestamp_received" not in call) or ("local" not in call):
-            return status("call record invalid")
+    if call is None:
+        return status("call id invalid")
 
-        if call["local"]:
-            if ("zip_code" not in call):
-                return status("call record invalid")
-            else:
-                zip_code = call["zip_code"]
+    if call_queue.find_one({"call_id": ObjectId(call_id)}, {"_id": 0, "call_id": 1}) is not None:
+        return status("call already in queue")
 
-        local = call["local"]
-        timestamp_received = call["timestamp_received"]
+    if ("language" not in call) or ("local" not in call) or \
+            ("zip_code" not in call) or ("timestamp_received" not in call):
+        return status("call record invalid")
 
-
-    if call_queue.find_one({"call_id": call_id}, {"_id": 0, "call_id": 1}) is not None:
-        return status("call id already exists")
+    language = call["language"]
+    local = call["local"]
+    zip_code = call["zip_code"]
+    timestamp_received = call["timestamp_received"]
 
     # "processing" is set to true when this call is being used in
     # some operation right now. So all operations have to block this
     # with processing = True in order to prevent multiple processes to
     # work with the same data record.
+    #
+    # Exception: (Bulk) Operations that are completed immediately
+    # -> That is actually the goal for every operation
 
     new_call = {
-        "call_id": call_id,
+        "call_id": ObjectId(call_id),
+
         "local": local,
         "zip_code": zip_code,
-        "timestamp_received": timestamp_received,
+        "language": language,
 
-        "processing": False,
-        "process_token": ""
+        "timestamp_received": timestamp_received,
     }
 
     call_queue.insert_one(new_call)
