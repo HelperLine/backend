@@ -1,5 +1,5 @@
 
-from flask_backend import app, status, helper_accounts_collection
+from flask_backend import app, status, helper_accounts_collection, api
 from flask_backend.routes import support_functions as support_functions_rest
 from flask_backend.nosql_scripts.helper_account_scripts import api_authentication
 from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_all_helper_data
@@ -49,3 +49,9 @@ def fulfill_call_route():
 @app.route('/backend/calls/reject', methods=['POST'])
 def reject_call_route():
     return status('ok')
+
+
+from flask_backend.resources.rest_call import RESTCall
+api.add_resource(RESTCall, '/backend/database/call')
+
+

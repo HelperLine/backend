@@ -1,5 +1,5 @@
 
-from flask_backend import status, caller_accounts_collection, calls_collection, helper_accounts_collection
+from flask_backend import status, caller_accounts_collection, calls_collection, helper_accounts_collection, helper_behavior_collection
 from datetime import datetime
 
 from flask_backend.nosql_scripts.call_scripts import enqueue, dequeue
@@ -84,23 +84,31 @@ def accept_call(helper_id, zip_code,
         return get_all_helper_data(helper_id=helper_id)
 
 
-def fulfill_call(call_id):
+def fulfill_call(call_id, helper_id):
     # call_id and agent_id are assumed to be valid
+
+    current_timestamp = datetime.now()
 
     # Change call status
     call_update = {
         'status': 'fulfilled',
-        'timestamp_fulfilled': datetime.now()
+        'timestamp_fulfilled': current_timestamp
     }
     calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': call_update})
 
+    new_behavior_log = {
+        'helper_id': ObjectId(helper_id),
+        'call_id': ObjectId(call_id),
+        'timestamp': current_timestamp,
+        'action': 'fulfilled',
+    }
+    helper_behavior_collection.insert_one(new_behavior_log)
 
-def reject_call(call_id):
-    # call_id and agent_id are assumed to be valid
-    call = calls_collection.find_one({'_id': ObjectId(call_id)})
+
+def reject_call(call_id, helper_id):
 
     # Remove call from agent's call list
-    helper_accounts_collection.update_one({'_id': ObjectId(call['helper_id'])}, {'$pull': {'calls': ObjectId(call_id)}})
+    helper_accounts_collection.update_one({'_id': ObjectId(helper_id)}, {'$pull': {'calls': ObjectId(call_id)}})
 
     # Change call status
     call_update = {
@@ -109,6 +117,18 @@ def reject_call(call_id):
     }
     calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': call_update})
     enqueue.enqueue(call_id)
+
+    new_behavior_log = {
+        'helper_id': ObjectId(helper_id),
+        'call_id': ObjectId(call_id),
+        'timestamp': datetime.now(),
+        'action': 'rejected',
+    }
+    helper_behavior_collection.insert_one(new_behavior_log)
+
+
+def comment_call(call_id, comment):
+    calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': {'comment': comment}})
 
 
 if __name__ == '__main__':
