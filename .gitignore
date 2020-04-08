@@ -3,7 +3,7 @@
 /venv
 /flask_backend/secrets.py
 /react_frontend
-
+/Pipfile.lock
 
 
 
