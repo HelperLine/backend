@@ -1,7 +1,7 @@
 
 from flask_backend import app, status, helper_accounts_collection, api
 from flask_backend.routes import support_functions as support_functions_rest
-from flask_backend.nosql_scripts.helper_account_scripts import api_authentication
+from flask_backend.nosql_scripts.helper_account_scripts import api_authentication, forwarding
 from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_all_helper_data
 
 from flask_backend.nosql_scripts.call_scripts import dequeue
@@ -15,16 +15,16 @@ def accept_call_route():
     params_dict = support_functions_rest.get_params_dict(request, print_out=True)
 
     if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
-        return status('invalid request')
+        return status('invalid email/api_key')
 
     helper = helper_accounts_collection.find_one({'email': params_dict['email']})
 
     if helper is None:
-        return status('invalid request')
+        return status('server error: helper record not found')
 
     if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
             'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
-        return status('invalid request')
+        return status('filter parameters missing')
 
     dequeue_result = dequeue.dequeue(
         str(helper['_id']),
@@ -43,17 +43,46 @@ def accept_call_route():
         return return_result
 
 
-@app.route('/backend/calls/fulfill', methods=['POST'])
-def fulfill_call_route():
-    return status('ok')
-
-
-@app.route('/backend/calls/reject', methods=['POST'])
-def reject_call_route():
-    return status('ok')
-
-
 from flask_backend.resources.rest_call import RESTCall
 api.add_resource(RESTCall, '/backend/database/call')
 
 
+
+@app.route('/backend/forward/online', methods=['POST'])
+def set_online_route():
+    params_dict = support_functions_rest.get_params_dict(request, print_out=True)
+
+    if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
+        return status('invalid email/api_key')
+
+    helper = helper_accounts_collection.find_one({'email': params_dict['email']})
+
+    if helper is None:
+        return status('server error: helper record not found')
+
+    if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
+            'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
+        return status('filter parameters missing')
+
+    return forwarding.set_online(
+        str(helper["_id"]),
+        filter_type_local=params_dict["filter_type_local"],
+        filter_type_global=params_dict["filter_type_global"],
+        filter_language_german=params_dict["filter_language_german"],
+        filter_language_english=params_dict["filter_language_english"],
+    )
+
+
+@app.route('/backend/forward/offline', methods=['POST'])
+def set_offline_route():
+    params_dict = support_functions_rest.get_params_dict(request, print_out=True)
+
+    if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
+        return status('invalid email/api_key')
+
+    helper = helper_accounts_collection.find_one({'email': params_dict['email']})
+
+    if helper is None:
+        return status('server error: helper record not found')
+
+    return forwarding.set_offline(str(helper["_id"]))

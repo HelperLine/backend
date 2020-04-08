@@ -36,7 +36,8 @@ def add_helper_account(email, password, zip_code, country='Germany'):
             'filter_language_english': False,
 
             'online': False,
-            'last_switched_online': datetime.datetime.now()
+            'last_switched_online': datetime.datetime.now(),
+            'online_schedule': []
         }
 
         try:
