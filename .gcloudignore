@@ -36,8 +36,10 @@ __pycache__/
 
 
 
-# Created by https://www.gitignore.io/api/node,react,linux,macos,flask,python,pycharm,windows,intellij,webstorm,jupyternotebooks
-# Edit at https://www.gitignore.io/?templates=node,react,linux,macos,flask,python,pycharm,windows,intellij,webstorm,jupyternotebooks
+
+
+# Created by https://www.gitignore.io/api/git,node,react,linux,macos,flask,python,pycharm,windows,intellij,webstorm
+# Edit at https://www.gitignore.io/?templates=git,node,react,linux,macos,flask,python,pycharm,windows,intellij,webstorm
 
 ### Flask ###
 instance/*
@@ -149,6 +151,21 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+### Git ###
+# Created by git for backups. To disable backups in Git:
+# $ git config --global mergetool.keepBackup false
+*.orig
+
+# Created by git when using merge tools for conflicts
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
+
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
@@ -236,20 +253,6 @@ fabric.properties
 # Markdown Navigator plugin
 .idea/**/markdown-navigator.xml
 .idea/**/markdown-navigator/
-
-### JupyterNotebooks ###
-# gitignore template for Jupyter Notebooks
-# website: http://jupyter.org/
-
-.ipynb_checkpoints
-*/.ipynb_checkpoints/*
-
-# IPython
-profile_default/
-ipython_config.py
-
-# Remove previous ipynb_checkpoints
-#   git rm -r .ipynb_checkpoints/
 
 ### Linux ###
 *~
@@ -596,4 +599,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.gitignore.io/api/node,react,linux,macos,flask,python,pycharm,windows,intellij,webstorm,jupyternotebooks
+# End of https://www.gitignore.io/api/git,node,react,linux,macos,flask,python,pycharm,windows,intellij,webstorm

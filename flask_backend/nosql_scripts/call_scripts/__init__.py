@@ -25,12 +25,12 @@ def add_caller(phone_number):
     return status('ok', caller_id=caller_id)
 
 
-def add_call(caller_id, language, local=False, zip_code=''):
+def add_call(caller_id, language, call_type='', zip_code=''):
     # local is boolean
     new_call = {
         'caller_id': ObjectId(caller_id),
 
-        'local': local,
+        'call_type': call_type,
         'zip_code': zip_code,
         'language': language,
 
@@ -62,7 +62,7 @@ def set_confirmed(call_id, confirmed):
         caller_accounts_collection.update_one({'_id': ObjectId(call['caller_id'])}, {'$push': {'calls': ObjectId(call_id)}})
         calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': {'confirmed': True}})
 
-        print(enqueue.enqueue(call_id))
+        enqueue.enqueue(call_id)
     else:
         calls_collection.delete_one({'_id': ObjectId(call_id)})
 

@@ -67,7 +67,7 @@ def hotline_question_1(language):
             return str(resp)
         elif choice == '2':
             caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)['Caller'])['caller_id']
-            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=False)['call_id']
+            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), call_type='global')['call_id']
             resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
         else:
@@ -98,7 +98,7 @@ def hotline_question_2(language):
         if len(zip_code) == 5 and finished_on_key == '#':
 
             caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)['Caller'])['caller_id']
-            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), local=True, zip_code=zip_code)['call_id']
+            call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), call_type='local', zip_code=zip_code)['call_id']
             resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
 

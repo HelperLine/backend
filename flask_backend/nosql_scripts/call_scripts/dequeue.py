@@ -56,7 +56,7 @@ def dequeue(helper_id, zip_code=None,
     if only_local_calls:
 
         filter_dict = {
-            'local': True,
+            'call_type': 'local',
             'zip_code': {'$in': zip_codes_list},
             'language': {'$in': language_list}
         }
@@ -69,7 +69,7 @@ def dequeue(helper_id, zip_code=None,
     elif only_global_calls:
 
         filter_dict = {
-            'local': False,
+            'call_type': 'global',
             'language': {'$in': language_list}
         }
 
