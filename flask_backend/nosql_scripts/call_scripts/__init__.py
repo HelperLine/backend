@@ -7,6 +7,7 @@ from flask_backend.nosql_scripts.helper_account_scripts.support_functions import
 
 from bson.objectid import ObjectId
 # These scripts will just be used internally!
+from pymongo import UpdateOne
 
 
 def add_caller(phone_number):
@@ -30,7 +31,7 @@ def add_call(caller_id, language, call_type='', zip_code=''):
     new_call = {
         'caller_id': ObjectId(caller_id),
 
-        'call_type': call_type,
+        'call_type': [call_type],
         'zip_code': zip_code,
         'language': language,
 
@@ -61,8 +62,6 @@ def set_confirmed(call_id, confirmed):
         # add call to the callers calls list
         caller_accounts_collection.update_one({'_id': ObjectId(call['caller_id'])}, {'$push': {'calls': ObjectId(call_id)}})
         calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': {'confirmed': True}})
-
-        enqueue.enqueue(call_id)
     else:
         calls_collection.delete_one({'_id': ObjectId(call_id)})
 
@@ -107,16 +106,32 @@ def fulfill_call(call_id, helper_id):
 
 def reject_call(call_id, helper_id):
 
-    # Remove call from agent's call list
-    helper_accounts_collection.update_one({'_id': ObjectId(helper_id)}, {'$pull': {'calls': ObjectId(call_id)}})
+
+    call_query_dict = {
+        "_id": ObjectId(call_id)
+    }
 
     # Change call status
-    call_update = {
-        'status': 'pending',
-        'helper_id': 0,
-        'comment': '',
+    call_update_dict_1 = {
+        "$set": {
+            'status': 'pending',
+            'helper_id': 0,
+            'comment': '',
+        }
     }
-    calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': call_update})
+
+    call_update_dict_2 = {
+        "$pull": {
+            "call_type": {"$in": ["forwarded"]},
+        }
+    }
+
+    operations = [
+        UpdateOne(call_query_dict, call_update_dict_1),
+        UpdateOne(call_query_dict, call_update_dict_2)
+    ]
+    calls_collection.bulk_write(operations)
+
     enqueue.enqueue(call_id)
 
     new_behavior_log = {

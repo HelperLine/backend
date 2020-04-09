@@ -52,6 +52,9 @@ def get_all_helper_data(email=None, helper_id=None):
 
         'zip_code': helper_account['zip_code'],
         'country': helper_account['country'],
+
+        'online': helper_account['online'],
+        'last_switched_online': helper_account['last_switched_online'].strftime("%d.%m.%y, %H:%M:%S"),
     }
 
     filters_dict = get_helper_filters_dict(helper_account)
@@ -89,6 +92,7 @@ def get_helper_calls_dict(helper_id):
     project_dict = {
         '_id': 1,
         'status': 1,
+        'call_type': 1,
 
         'timestamp_received': 1,
         'timestamp_accepted': 1,
@@ -112,6 +116,7 @@ def get_helper_calls_dict(helper_id):
     projected_list = [{
         'call_id': str(call['_id']),
         'status': call['status'],
+        'call_type': call['call_type'],
         'timestamp_received': datetime_to_string(call['timestamp_received']),
         'timestamp_accepted': datetime_to_string(call['timestamp_accepted']),
         'timestamp_fulfilled': datetime_to_string(call['timestamp_fulfilled']),

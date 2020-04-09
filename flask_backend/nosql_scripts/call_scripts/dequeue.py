@@ -56,7 +56,7 @@ def dequeue(helper_id, zip_code=None,
     if only_local_calls:
 
         filter_dict = {
-            'call_type': 'local',
+            'call_type': {"$elemMatch": {"$eq": 'local'}},
             'zip_code': {'$in': zip_codes_list},
             'language': {'$in': language_list}
         }
@@ -69,7 +69,7 @@ def dequeue(helper_id, zip_code=None,
     elif only_global_calls:
 
         filter_dict = {
-            'call_type': 'global',
+            'call_type': {"$elemMatch": {"$eq": 'global'}},
             'language': {'$in': language_list}
         }
 
@@ -90,7 +90,7 @@ def dequeue(helper_id, zip_code=None,
         if call is None:
 
             filter_dict = {
-                'local': True,
+                'call_type': {"$elemMatch": {"$eq": 'local'}},
                 'zip_code': {'$in': zip_codes_list},
                 'language': {'$in': language_list}
             }
@@ -106,8 +106,8 @@ def dequeue(helper_id, zip_code=None,
             # are not in the global queue yet get assigned
             call = call_queue.find_one_and_delete(
                 {'$or': [
-                    {'local': True, 'timestamp_received': {'$lt': current_timestamp - support_functions.local_timeout_timedelta}},
-                    {'local': False}
+                    {'call_type': {"$elemMatch": {"$eq": 'local'}}, 'timestamp_received': {'$lt': current_timestamp - support_functions.local_timeout_timedelta}},
+                    {'call_type': {"$elemMatch": {"$eq": 'global'}}}
                 ]},
                 projection_dict,
                 sort=[('timestamp_received', 1)],
@@ -126,15 +126,7 @@ def dequeue(helper_id, zip_code=None,
         {'$set': {'helper_id': ObjectId(helper_id), 'status': 'accepted', 'timestamp_accepted': current_timestamp}})
 
 
-
-    # Step 4) Update helper (calls)
-    helper_accounts_collection.update_one(
-        {'_id': ObjectId(helper_id)},
-        {'$push': {'calls': ObjectId(call_id)}})
-
-
-
-    # Step 5) Add helper behavior (helper_id, call_id, timestamp, action='accepted'
+    # Step 4) Add helper behavior (helper_id, call_id, timestamp, action='accepted'
     new_behavior_log = {
         'helper_id': ObjectId(helper_id),
         'call_id': ObjectId(call_id),

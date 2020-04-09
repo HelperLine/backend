@@ -48,7 +48,7 @@ api.add_resource(RESTCall, '/backend/database/call')
 
 
 
-@app.route('/backend/forward/online', methods=['POST'])
+@app.route('/backend/forward/online', methods=['PUT'])
 def set_online_route():
     params_dict = support_functions_rest.get_params_dict(request, print_out=True)
 
@@ -73,7 +73,7 @@ def set_online_route():
     )
 
 
-@app.route('/backend/forward/offline', methods=['POST'])
+@app.route('/backend/forward/offline', methods=['PUT'])
 def set_offline_route():
     params_dict = support_functions_rest.get_params_dict(request, print_out=True)
 

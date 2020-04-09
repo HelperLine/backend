@@ -49,15 +49,38 @@ hotline_translation = {
         'en-gb': 'Please confirm this request by pressing 1. Cancel by pressing 2.',
     },
     'question_4_answer_confirm': {
-        'de': 'Ok. Wir haben Ihre Anfrage weitergeleitet. Es wird sich in Kürze einer unserer Agenten melden. ' +
-              'Vielen Dank für Ihre Geduld. Auf Wiederhören.',
-        'en-gb': 'Ok. We have delegated your request to one of our volunteers. We will contact you shortly.'
-                 'Thank you for your patience. Goodbye.',
+        'de': 'Ok, bitte geben Sie uns einen Moment, um Sie durchzustellen.',
+        'en-gb': 'Ok please give us a moment to transfer your call.',
     },
     'question_4_answer_cancel': {
         'de': 'Ok. Wir haben Ihre Anfrage abgebrochen. Sie können sich jederzeit wieder melden.',
         'en-gb': 'Ok. We have canceled your request. Feel free to contact us again anytime.',
     },
+
+
+    'forward_successful': {
+        'de': 'Wir haben einen passenden Helfer gefunden, und werden Sie nun zu ihm durchstellen.',
+        'en-gb': 'We have found a suitable volunteer and will transfer your call now.',
+    },
+    'forward_not_successful': {
+        'de': 'Alle passenden Helfer befinden sich aktuell in einem Gespräch. Es wird sie in Kürze einer der ' +
+              'Helfer bei Ihnen melden. Auf Wiederhören.',
+        'en-gb': 'All suitable volunteers are currently unavailable. One of these volunteers will call you ' +
+                 'back shortly. Goodbye.',
+    },
+
+    'after_forward_successful': {
+        'de': 'Wir hoffen, dass Sie ein angenehmes Gespräch mit unserem Helfer hatten. Wir freuen uns darauf, ' +
+              'bald wieder von Ihnen zu hören. Bis dann.',
+        'en-gb': 'We hope, you\'ve had a pleasent call with our volunteer. Speak to you soon. Goodbye.'
+    },
+    'after_forward_not_successful': {
+        'de': 'Leider hat dieser Helfer den Anruf nicht entgegengenommen. Ein anderer Helfer meldet sich ' +
+              'in Kürze bei Ihnen',
+        'en-gb': 'Unfortunately that helper did not pick up his phone. Another helper will call you ' +
+                 'back shortly. Goodbye.',
+    },
+
 
     'error_message': {
         'de': 'Leider ist bei dieser Anfrage etwas schiefgelaufen. Bitte versuchen Sie es später noch einmal.',

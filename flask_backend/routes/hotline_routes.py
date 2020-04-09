@@ -4,6 +4,8 @@ from flask_backend import app
 from twilio.twiml.voice_response import VoiceResponse, Gather
 
 from flask_backend.nosql_scripts import call_scripts
+from flask_backend.nosql_scripts.call_scripts import enqueue
+from flask_backend.nosql_scripts.helper_account_scripts import forwarding
 from flask_backend.routes.hotline_translation import hotline_translation
 
 from flask_backend.routes import support_functions
@@ -142,7 +144,7 @@ def hotline_question_3(language, call_id):
 @app.route('/hotline/<language>/question/4/<call_id>', methods=['GET', 'POST'])
 def hotline_question_4(language, call_id):
 
-    # STEP 3) Are we allowed to call you back for feedback?
+    # STEP 4) Confirm or Cancel the Call
 
     resp = VoiceResponse()
     gather = Gather(num_digits=1)
@@ -154,6 +156,7 @@ def hotline_question_4(language, call_id):
             # TODO: Async Task - maybe Celery?
             call_scripts.set_confirmed(call_id, True)
             resp.say(hotline_translation['question_4_answer_confirm'][language], voice='woman', language=language)
+            resp.redirect(f'/hotline/{language}/forward/{call_id}')
             return str(resp)
         elif choice == '2':
             # TODO: Async Task - maybe Celery?
@@ -169,6 +172,48 @@ def hotline_question_4(language, call_id):
     resp.redirect(f'/hotline/{language}/question/4/{call_id}')
 
     return str(resp)
+
+
+@app.route('/hotline/<language>/forward/<call_id>', methods=['GET', 'POST'])
+def hotline_forward(language, call_id):
+
+    forward_helper_query_result = forwarding.find_forward_helper(call_id)
+
+    resp = VoiceResponse()
+
+    if forward_helper_query_result["status"] == "ok":
+        resp.say(hotline_translation['forward_successful'][language], voice='woman', language=language)
+
+        phone_number = forward_helper_query_result["phone_number"]
+        helper_id = forward_helper_query_result['helper_id']
+        resp.dial(phone_number,
+                  action=f"/hotline/{language}/after-forward/{call_id}/{helper_id}",
+                  timeout=15)
+
+    else:
+        resp.say(hotline_translation['forward_not_successful'][language], voice='woman', language=language)
+        enqueue.enqueue(call_id)
+
+    return str(resp)
+
+
+@app.route('/hotline/<language>/after-forward/<call_id>/<helper_id>', methods=['GET', 'POST'])
+def hotline_after_forward(language, call_id, helper_id):
+
+    forward_call_result = support_functions.get_params_dict(request)
+    dial_call_status = forward_call_result["DialCallStatus"]
+
+    resp = VoiceResponse()
+
+    if dial_call_status == "completed":
+        resp.say(hotline_translation['after_forward_successful'][language], voice='woman', language=language)
+    else:
+        forwarding.flag_helper(call_id, helper_id, dial_call_status)
+        enqueue.enqueue(call_id)
+        resp.say(hotline_translation['after_forward_not_successful'][language], voice='woman', language=language)
+
+    return str(resp)
+
 
 
 
