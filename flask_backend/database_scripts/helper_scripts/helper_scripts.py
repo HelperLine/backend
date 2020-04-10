@@ -1,7 +1,7 @@
 
-from flask_backend import helper_accounts_collection, status, helper_api_keys_collection, email_tokens_collection
+from flask_backend import helper_accounts_collection, helper_api_keys_collection, email_tokens_collection
 from flask_backend.database_scripts.helper_scripts import email_verification, verify_register_form, api_authentication
-from flask_backend.support_functions import tokening, fetching, verifying
+from flask_backend.support_functions import tokening, fetching, verifying, formatting
 
 from pymongo.errors import DuplicateKeyError
 import datetime
@@ -11,7 +11,7 @@ import time
 def add_helper_account(params_dict):
     for key in ['email', 'password', 'zip_code', 'country']:
         if key not in params_dict:
-            return status(f'{key} missing')
+            return formatting.status(f'{key} missing')
 
     email = params_dict["email"]
     password = params_dict["password"]
@@ -52,7 +52,7 @@ def add_helper_account(params_dict):
             # If two people sign up exactla at once
             # (verfication done but inserting fails for one)
             print(f'DuplicateKeyError: {e}')
-            return status('email already taken')
+            return formatting.status('email already taken')
 
         # Send verification email and add verification record
         email_verification.trigger_email_verification(email)
@@ -93,10 +93,10 @@ def modify_helper_account(params_dict):
 
     if 'new_email' in params_dict:
         if (email != params_dict['new_email']) and (helper_account['email_verified']):
-            return status('email already verified')
+            return formatting.status('email already verified')
         else:
             if not verifying.verify_email_format(params_dict['new_email']):
-                return status('email format invalid')
+                return formatting.status('email format invalid')
             else:
                 new_email = params_dict['new_email']
     else:
@@ -105,17 +105,17 @@ def modify_helper_account(params_dict):
     if 'old_password' in params_dict and 'new_password' in params_dict:
         if tokening.check_password(params_dict['old_password'], helper_account['hashed_password']):
             if not verifying.verify_password_format(params_dict['new_password']):
-                return status('password format invalid')
+                return formatting.status('password format invalid')
             else:
                 new_password = tokening.hash_password(params_dict['new_password'])
         else:
-            return status('old password invalid')
+            return formatting.status('old password invalid')
     else:
         new_password = helper_account['hashed_password']
 
     if 'zip_code' in params_dict:
         if not verifying.verify_zip_code_format(params_dict['zip_code']):
-            return status('zip code format invalid')
+            return formatting.status('zip code format invalid')
         else:
             new_zip_code = params_dict['zip_code']
     else:
@@ -123,7 +123,7 @@ def modify_helper_account(params_dict):
 
     if 'country' in params_dict:
         if not verifying.verify_country_format(params_dict['country']):
-            return status('country invalid')
+            return formatting.status('country invalid')
         else:
             new_country = params_dict['country']
     else:

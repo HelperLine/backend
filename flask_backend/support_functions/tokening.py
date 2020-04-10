@@ -1,7 +1,8 @@
 
-from flask_backend import bcrypt, BCRYPT_SALT, status
+from flask_backend import bcrypt, BCRYPT_SALT
 from flask_backend.database_scripts.helper_scripts import api_authentication as helper_scripts
 from flask_backend.database_scripts.admin_scripts import api_authentication as admin_scripts
+from flask_backend.support_functions import formatting
 
 import random
 
@@ -42,7 +43,7 @@ def check_helper_api_key(params_dict):
     if email is not None and api_key is not None:
         return helper_scripts.helper_login_api_key(email, api_key)
     else:
-        return status('email/api_key missing')
+        return formatting.status('email/api_key missing')
 
 
 def check_admin_api_key(params_dict):
@@ -52,4 +53,4 @@ def check_admin_api_key(params_dict):
     if email is not None and api_key is not None:
         return admin_scripts.admin_login_api_key(email, api_key)
     else:
-        return status('email/api_key missing')
+        return formatting.status('email/api_key missing')

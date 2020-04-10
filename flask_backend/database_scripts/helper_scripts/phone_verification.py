@@ -1,6 +1,6 @@
 
-from flask_backend import status, helper_accounts_collection, phone_tokens_collection
-from flask_backend.support_functions import tokening, fetching
+from flask_backend import helper_accounts_collection, phone_tokens_collection
+from flask_backend.support_functions import tokening, fetching, formatting
 
 from pymongo import DeleteMany, InsertOne
 from datetime import datetime, timedelta
@@ -21,7 +21,7 @@ def verify_phone_number(token='', phone_number=''):
 
 
     if record is None:
-        return status('token invalid')
+        return formatting.status('token invalid')
 
     helper_id = record['helper_id']
 
@@ -33,7 +33,7 @@ def verify_phone_number(token='', phone_number=''):
         }})
     phone_tokens_collection.delete_many({'helper_id': helper_id})
 
-    return status('ok')
+    return formatting.status('ok')
 
 
 def trigger_phone_verification(email):
@@ -58,7 +58,7 @@ def trigger_phone_verification(email):
     phone_tokens_collection.bulk_write(operations, ordered=True)
 
     # Trigger token-email
-    return status('ok', token=token)
+    return formatting.status('ok', token=token)
 
 
 def confirm_phone_verification(email):
@@ -82,4 +82,4 @@ if __name__ == '__main__':
 
     # confirm_email('iu694Wfs8p7zVggbWeuLIPXplEhQoMHMXeDriOhMl0WRfSQSGhgDzLC0BIsJm32s')
 
-    print(trigger_phone_number_verification('5e8a66bddda9d4c16f9ad9e5'))
+    print(trigger_phone_verification('5e8a66bddda9d4c16f9ad9e5'))

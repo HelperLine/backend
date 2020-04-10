@@ -1,6 +1,6 @@
 
-from flask_backend import status, helper_api_keys_collection, helper_accounts_collection
-from flask_backend.support_functions import tokening, fetching
+from flask_backend import helper_api_keys_collection, helper_accounts_collection
+from flask_backend.support_functions import tokening, fetching, formatting
 
 from pymongo import DeleteMany, InsertOne
 
@@ -37,7 +37,7 @@ def helper_login_password(email, password):
             result_dict.update({'email': email, 'api_key': api_key})
             return result_dict
 
-    return status('email/password invalid')
+    return formatting.status('email/password invalid')
 
 
 def helper_login_api_key(email, api_key, new_api_key=False):
@@ -51,11 +51,11 @@ def helper_login_api_key(email, api_key, new_api_key=False):
             result_dict.update({'email': email, 'api_key': api_key})
             return result_dict
 
-    return status('email/api_key invalid')
+    return formatting.status('email/api_key invalid')
 
 
 def helper_logout(email, api_key):
     helper_api_key = helper_api_keys_collection.find_one({'email': email})
     if api_key == helper_api_key['api_key']:
         helper_delete_api_key(email)
-    return status('ok')
+    return formatting.status('ok')

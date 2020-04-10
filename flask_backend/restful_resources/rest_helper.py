@@ -1,6 +1,5 @@
 
-from flask_backend import status
-from flask_backend.database_scripts.helper_scripts import helper_scripts, api_authentication
+from flask_backend.database_scripts.helper_scripts import helper_scripts
 from flask_backend.support_functions import routing, fetching, tokening
 
 from flask_restful import Resource

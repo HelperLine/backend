@@ -1,6 +1,6 @@
 
-from flask_backend import helper_accounts_collection, status, calls_collection, helper_behavior_collection
-from flask_backend.support_functions import fetching
+from flask_backend import helper_accounts_collection, calls_collection, helper_behavior_collection
+from flask_backend.support_functions import fetching, formatting
 
 from pymongo import UpdateOne
 from bson import ObjectId
@@ -11,15 +11,15 @@ def set_online(params_dict):
 
     if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
             'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
-        return status('filters missing')
+        return formatting.status('filters missing')
 
     helper = helper_accounts_collection.find_one({'email': params_dict['email']})
 
     if helper is None:
-        return status('server error: helper record not found')
+        return formatting.status('server error: helper record not found')
 
     if helper["phone_number"] == "" or not helper["phone_number_verified"] or not helper["phone_number_confirmed"]:
-        return status("phone number not verified/confirmed")
+        return formatting.status("phone number not verified/confirmed")
 
     helper_update = {
         'filter_type_local': params_dict["filter_type_local"],
@@ -45,14 +45,14 @@ def set_offline(params_dict):
 
 
 def find_forward_helper(call_id):
-    # Returns status="ok" and helper phone number if helper was found
-    # Returns status="no helper available" if no helper was found.
+    # Returns formatting.status="ok" and helper phone number if helper was found
+    # Returns formatting.status="no helper available" if no helper was found.
 
 
     call = calls_collection.find_one({"_id": ObjectId(call_id)})
 
     if call is None:
-        return status("call_id invalid")
+        return formatting.status("call_id invalid")
 
 
 
@@ -107,7 +107,7 @@ def find_forward_helper(call_id):
         }
 
     else:
-        return status("call_type invalid")
+        return formatting.status("call_type invalid")
 
 
 
@@ -124,13 +124,13 @@ def find_forward_helper(call_id):
     helper = helper_accounts_collection.find_one_and_update(helper_query_dict, helper_update_dict)
 
     if helper is None:
-        return status("no helper available")
+        return formatting.status("no helper available")
 
 
 
 
 
-    # Step 4) Update call (call_type, helper_id, status, timestamp_accepted)
+    # Step 4) Update call (call_type, helper_id, formatting.status, timestamp_accepted)
 
     call_query_dict = {
         "_id": ObjectId(call_id)
@@ -167,7 +167,7 @@ def find_forward_helper(call_id):
     }
     helper_behavior_collection.insert_one(new_behavior_log)
 
-    return status("ok", phone_number=helper["phone_number"], helper_id=str(helper["_id"]))
+    return formatting.status("ok", phone_number=helper["phone_number"], helper_id=str(helper["_id"]))
 
 
 

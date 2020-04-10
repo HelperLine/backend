@@ -1,8 +1,8 @@
 
+from flask_backend import app
 from flask_backend.database_scripts.admin_scripts import api_authentication
-from flask_backend.support_functions import routing, tokening
+from flask_backend.support_functions import routing, tokening, formatting
 
-from flask_backend import app, status
 from flask import request
 import time
 
@@ -30,10 +30,10 @@ def route_admin_account_login(api_version):
 
         # invalid request
         else:
-            return status('email/password/api_key missing')
+            return formatting.status('email/password/api_key missing')
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 
@@ -51,4 +51,4 @@ def route_admin_account_logout(api_version):
         return api_authentication.admin_logout(params_dict['email'], params_dict['api_key'])
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")

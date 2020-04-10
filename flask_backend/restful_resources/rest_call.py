@@ -1,7 +1,7 @@
 
-from flask_backend import status, calls_collection, helper_accounts_collection
+from flask_backend import calls_collection, helper_accounts_collection
 from flask_backend.database_scripts.call_scripts import call_scripts
-from flask_backend.support_functions import routing, fetching, tokening
+from flask_backend.support_functions import routing, fetching, tokening, formatting
 
 from flask_restful import Resource
 from flask import request
@@ -30,32 +30,32 @@ class RESTCall(Resource):
 
         helper = helper_accounts_collection.find_one({"email": params_dict["email"]})
         if helper is None:
-            return status("backend error - helper record not found after successful authentication")
+            return formatting.status("backend error - helper record not found after successful authentication")
 
         if 'call_id' not in params_dict:
-            return status('call_id missing')
+            return formatting.status('call_id missing')
 
         call = calls_collection.find_one({"_id": ObjectId(params_dict["call_id"])})
 
         if call is None:
-            return status("call_id invalid")
+            return formatting.status("call_id invalid")
 
 
 
         # Step 3) Check eligibility to modify this call
 
         if str(call["helper_id"]) != str(helper["_id"]):
-            return status("not authorized to edit this call")
+            return formatting.status("not authorized to edit this call")
 
         if call["status"] == "fulfilled":
-            return status('cannot change a fulfilled call')
+            return formatting.status('cannot change a fulfilled call')
 
 
 
         # Step 4) Execute action if possible
 
         if 'action' not in params_dict:
-            status('action missing')
+            formatting.status('action missing')
 
         if params_dict["action"] == "fulfill":
             call_scripts.fulfill_call(params_dict["call_id"], helper["_id"])
@@ -65,11 +65,11 @@ class RESTCall(Resource):
 
         elif params_dict["action"] == "comment":
             if 'comment' not in params_dict:
-                return status('comment missing')
+                return formatting.status('comment missing')
 
             call_scripts.comment_call(params_dict["call_id"], params_dict["comment"])
         else:
-            return status('action invalid')
+            return formatting.status('action invalid')
 
 
 

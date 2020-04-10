@@ -1,14 +1,18 @@
-from flask import Flask
 
+from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_restful import Api
 
-from google.cloud import datastore
-
 import os
 import certifi
+from google.cloud import datastore
 from pymongo import MongoClient
+
+from flask_backend.support_functions.formatting import status
+
+
+
 
 # Set correct SSL certificate
 os.environ['SSL_CERT_FILE'] = certifi.where()
@@ -20,7 +24,6 @@ if os.getenv("ENVIRONMENT") != "production":
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
 
 client = datastore.Client()
-
 for name in ["MONGODB_WRITE_CONNECTION_STRING", "SECRET_KEY", "BCRYPT_SALT",
              "GCP_API_KEY", "SENDGRID_API_KEY", "BACKEND_URL", "FRONTEND_URL"]:
     raw_query_result = client.query(kind='Secrets').add_filter('name', '=', name).fetch()
@@ -73,14 +76,6 @@ app.config['SECRET_KEY'] = SECRET_KEY
 cors = CORS(app)
 bcrypt = Bcrypt(app)
 api = Api(app)
-
-
-
-
-def status(text, **kwargs):
-    status_dict = {'status': text}
-    status_dict.update(kwargs)
-    return status_dict
 
 
 from flask_backend.backend_routes import default_routes, helper_routes, call_routes, hotline_routes

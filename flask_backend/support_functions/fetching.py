@@ -1,4 +1,4 @@
-from flask_backend import status, helper_accounts_collection, caller_accounts_collection, \
+from flask_backend import helper_accounts_collection, caller_accounts_collection, \
     calls_collection, zip_codes_collection
 
 from bson import ObjectId
@@ -12,7 +12,7 @@ def get_all_helper_data(email=None, helper_id=None):
         helper_account = helper_accounts_collection.find_one({'_id': ObjectId(helper_id)})
 
     if helper_account is None:
-        return status('invalid email/helper_id')
+        return formatting.status('invalid email/helper_id')
 
     account_dict = {
         'email_verified': helper_account['email_verified'],
@@ -29,24 +29,20 @@ def get_all_helper_data(email=None, helper_id=None):
     }
 
     filters_dict = get_helper_filters_dict(helper_account)
-
-    # TODO: !
     calls_dict = get_helper_calls_dict(helper_account['_id'])
-
-    # TODO: !
     performance_dict = get_helper_performance_dict(helper_account, calls_dict)
 
-    return status('ok',
-                  email=helper_account["email"],
-                  account=account_dict,
-                  calls=calls_dict,
-                  performance=performance_dict,
-                  filters=filters_dict)
+    return formatting.status('ok',
+                             email=helper_account["email"],
+                             account=account_dict,
+                             calls=calls_dict,
+                             performance=performance_dict,
+                             filters=filters_dict)
 
 
 def get_helper_calls_dict(helper_id):
     # every_call should have the field:
-    # call_id, caller_id, phone_number, local, zip_code, status
+    # call_id, caller_id, phone_number, local, zip_code, formatting.status
     # timestamp_received, timestamp_accepted, (timestamp_fulfilled)
 
     match_dict = {
@@ -54,10 +50,10 @@ def get_helper_calls_dict(helper_id):
     }
 
     lookup_dict = {
-            'from': 'caller_accounts',
-            'localField': 'caller_id',
-            'foreignField': '_id',
-            'as': 'caller'
+        'from': 'caller_accounts',
+        'localField': 'caller_id',
+        'foreignField': '_id',
+        'as': 'caller'
     }
 
     project_dict = {
@@ -75,7 +71,6 @@ def get_helper_calls_dict(helper_id):
             'phone_number': 1
         }
     }
-
 
     raw_list = list(
         calls_collection.aggregate([

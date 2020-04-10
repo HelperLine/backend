@@ -1,6 +1,6 @@
 
-from flask_backend import SENDGRID_API_KEY, BACKEND_URL, status, email_tokens_collection, helper_accounts_collection
-from flask_backend.support_functions import tokening
+from flask_backend import SENDGRID_API_KEY, BACKEND_URL, email_tokens_collection, helper_accounts_collection
+from flask_backend.support_functions import tokening, formatting
 
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import *
@@ -17,10 +17,10 @@ def send_verification_mail(email, verification_token):
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
-        return status('ok')
+        return formatting.status('ok')
     except Exception as e:
         print(e)
-        return status('email sending failed')
+        return formatting.status('email sending failed')
 
 
 def verify_email(verification_token):
@@ -36,7 +36,7 @@ def trigger_email_verification(email):
     helper_account = helper_accounts_collection.find_one({'email': email})
 
     if helper_account['email_verified']:
-        return status('email already verified')
+        return formatting.status('email already verified')
 
     # Generate new token
     verification_token = tokening.generate_random_key(length=64)

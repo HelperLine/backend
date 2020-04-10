@@ -1,7 +1,7 @@
 
-from flask_backend import app, status, api, FRONTEND_URL
+from flask_backend import app, api, FRONTEND_URL
 from flask_backend.database_scripts.helper_scripts import api_authentication, email_verification, phone_verification
-from flask_backend.support_functions import routing, tokening
+from flask_backend.support_functions import routing, tokening, formatting
 
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from flask import redirect, request
@@ -34,12 +34,12 @@ def route_helper_account_login(api_version):
             login_result_dict = api_authentication.helper_login_api_key(email, api_key)
 
         else:
-            login_result_dict = status('email/password/api_key missing')
+            login_result_dict = formatting.status('email/password/api_key missing')
 
         return login_result_dict
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/logout/helper', methods=['POST'])
@@ -55,7 +55,7 @@ def route_helper_account_logout(api_version):
         return api_authentication.helper_logout(params_dict['email'], params_dict['api_key'])
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/email/verify/<verification_token>')
@@ -66,7 +66,7 @@ def route_helper_email_verify(api_version, verification_token):
         return redirect(FRONTEND_URL + 'calls')
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/email/resend', methods=['POST'])
@@ -82,7 +82,7 @@ def route_helper_email_resend(api_version):
         return email_verification.trigger_email_verification(params_dict['email'])
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/phone/trigger', methods=['POST'])
@@ -98,7 +98,7 @@ def route_helper_phone_trigger(api_version):
         return phone_verification.trigger_phone_verification(params_dict['email'])
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/phone/verify', methods=['GET', 'POST'])
@@ -126,7 +126,7 @@ def route_helper_phone_verify(api_version):
         return str(resp)
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/phone/confirm', methods=['POST'])
@@ -142,4 +142,4 @@ def route_helper_phone_confirm(api_version):
         return phone_verification.confirm_phone_verification(params_dict['email'])
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")

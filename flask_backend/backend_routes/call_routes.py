@@ -1,7 +1,7 @@
 
-from flask_backend import app, status, api
+from flask_backend import app, api
 from flask_backend.database_scripts.call_scripts import call_scripts, forwarding
-from flask_backend.support_functions import routing, tokening
+from flask_backend.support_functions import routing, tokening, formatting
 
 from flask import request
 
@@ -24,7 +24,7 @@ def route_call_accept(api_version):
         return call_scripts.accept_call(params_dict)
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/forward/online', methods=['PUT'])
@@ -40,7 +40,7 @@ def route_call_set_online(api_version):
         return forwarding.set_online(params_dict)
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/forward/offline', methods=['PUT'])
@@ -56,4 +56,4 @@ def route_call_set_offline(api_version):
         return forwarding.set_offline(params_dict)
 
     else:
-        return status("api_version invalid")
+        return formatting.status("api_version invalid")

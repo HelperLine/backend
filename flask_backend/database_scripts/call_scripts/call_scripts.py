@@ -1,6 +1,6 @@
-from flask_backend import status, caller_accounts_collection, calls_collection, helper_behavior_collection, helper_accounts_collection
+from flask_backend import caller_accounts_collection, calls_collection, helper_behavior_collection, helper_accounts_collection
 from flask_backend.database_scripts.call_scripts import enqueue, dequeue
-from flask_backend.support_functions import fetching
+from flask_backend.support_functions import fetching, formatting
 
 from bson.objectid import ObjectId
 from pymongo import UpdateOne
@@ -22,7 +22,7 @@ def add_caller(phone_number):
     else:
         caller_id = existing_caller['_id']
 
-    return status('ok', caller_id=caller_id)
+    return formatting.status('ok', caller_id=caller_id)
 
 
 def add_call(caller_id, language, call_type='', zip_code=''):
@@ -47,7 +47,7 @@ def add_call(caller_id, language, call_type='', zip_code=''):
     }
     call_id = calls_collection.insert_one(new_call).inserted_id
 
-    return status('ok', call_id=call_id)
+    return formatting.status('ok', call_id=call_id)
 
 
 def set_feeback(call_id, feedback_granted):
@@ -72,11 +72,11 @@ def accept_call(params_dict):
     helper = helper_accounts_collection.find_one({'email': params_dict['email']})
 
     if helper is None:
-        return status('server error: helper record not found')
+        return formatting.status('server error: helper record not found')
 
     if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
             'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
-        return status('filter parameters missing')
+        return formatting.status('filter parameters missing')
 
     dequeue_result = dequeue.dequeue(
         str(helper['_id']),
@@ -98,7 +98,7 @@ def fulfill_call(call_id, helper_id):
 
     current_timestamp = datetime.now()
 
-    # Change call status
+    # Change call formatting.status
     call_update = {
         'status': 'fulfilled',
         'timestamp_fulfilled': current_timestamp
@@ -115,7 +115,7 @@ def fulfill_call(call_id, helper_id):
 
 
 def reject_call(call_id, helper_id):
-    # Change call status
+    # Change call formatting.status
     call_update_dict_1 = {
         "$set": {
             'status': 'pending',
