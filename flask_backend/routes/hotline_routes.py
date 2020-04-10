@@ -24,7 +24,7 @@ def twilio_language_to_string(twilio_language):
 
 
 @app.route('/hotline/<api_version>', methods=['GET', 'POST'])
-def initial_endpoint(api_version):
+def route_initial_endpoint(api_version):
     
     resp = VoiceResponse()
     
@@ -58,7 +58,7 @@ def initial_endpoint(api_version):
 
 
 @app.route('/hotline/<api_version>/<language>/question/1', methods=['GET', 'POST'])
-def hotline_question_1(api_version, language):
+def route_hotline_question_1(api_version, language):
     
     resp = VoiceResponse()
 
@@ -94,7 +94,7 @@ def hotline_question_1(api_version, language):
 
 
 @app.route('/hotline/<api_version>/<language>/question/2', methods=['GET', 'POST'])
-def hotline_question_2(api_version, language):
+def route_hotline_question_2(api_version, language):
     
     resp = VoiceResponse()
 
@@ -127,7 +127,7 @@ def hotline_question_2(api_version, language):
 
 
 @app.route('/hotline/<api_version>/<language>/question/3/<call_id>', methods=['GET', 'POST'])
-def hotline_question_3(api_version, language, call_id):
+def route_hotline_question_3(api_version, language, call_id):
     
     resp = VoiceResponse()
 
@@ -161,7 +161,7 @@ def hotline_question_3(api_version, language, call_id):
 
 
 @app.route('/hotline/<api_version>/<language>/question/4/<call_id>', methods=['GET', 'POST'])
-def hotline_question_4(api_version, language, call_id):
+def route_hotline_question_4(api_version, language, call_id):
     
     resp = VoiceResponse()
 
@@ -199,7 +199,7 @@ def hotline_question_4(api_version, language, call_id):
 
 
 @app.route('/hotline/<api_version>/<language>/forward/<call_id>', methods=['GET', 'POST'])
-def hotline_forward(api_version, language, call_id):
+def route_hotline_forward(api_version, language, call_id):
     
     resp = VoiceResponse()
 
@@ -226,7 +226,7 @@ def hotline_forward(api_version, language, call_id):
 
 
 @app.route('/hotline/<api_version>/<language>/after-forward/<call_id>/<helper_id>', methods=['GET', 'POST'])
-def hotline_after_forward(api_version, language, call_id, helper_id):
+def route_hotline_after_forward(api_version, language, call_id, helper_id):
     
     resp = VoiceResponse()
 
@@ -250,7 +250,7 @@ def hotline_after_forward(api_version, language, call_id, helper_id):
 
 
 @app.route('/hotline/error/general', methods=['GET', 'POST'])
-def hotline_error_general():
+def route_hotline_error_general():
 
     # Error response in case the server does not produce a valid response at some point
 
@@ -263,7 +263,7 @@ def hotline_error_general():
 
 
 @app.route('/hotline/error/api_version', methods=['GET', 'POST'])
-def hotline_error_api_version():
+def route_hotline_error_api_version():
 
     # Error response in case an invalid api_version is requested
 

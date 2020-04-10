@@ -9,7 +9,7 @@ import time
 
 
 @app.route('/backend/<api_version>/login/helper', methods=['POST'])
-def backend_helper_login(api_version):
+def route_helper_account_login(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
@@ -42,7 +42,7 @@ def backend_helper_login(api_version):
 
 
 @app.route('/backend/<api_version>/logout/helper', methods=['POST'])
-def backend_helper_logout(api_version):
+def route_helper_account_logout(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
@@ -71,7 +71,7 @@ api.add_resource(RESTAccount, '/backend/v1/database/account')
 
 
 @app.route('/backend/<api_version>/email/verify/<verification_token>')
-def backend_email_verify(api_version, verification_token):
+def route_helper_email_verify(api_version, verification_token):
 
     if api_version == "v1":
         email_verification.verify_email(verification_token)
@@ -82,7 +82,7 @@ def backend_email_verify(api_version, verification_token):
 
 
 @app.route('/backend/<api_version>/email/resend', methods=['POST'])
-def backend_resend_email(api_version):
+def route_helper_email_resend(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
@@ -111,7 +111,7 @@ def backend_resend_email(api_version):
 
 
 @app.route('/backend/<api_version>/phone/trigger', methods=['POST'])
-def backend_trigger_phone_verification(api_version):
+def route_helper_phone_trigger(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
@@ -131,7 +131,7 @@ def backend_trigger_phone_verification(api_version):
 
 
 @app.route('/backend/<api_version>/phone/verify', methods=['GET', 'POST'])
-def hotline_phone_verification(api_version):
+def route_helper_phone_verify(api_version):
 
     if api_version == "v1":
         resp = VoiceResponse()
@@ -159,7 +159,7 @@ def hotline_phone_verification(api_version):
 
 
 @app.route('/backend/<api_version>/phone/confirm', methods=['POST'])
-def backend_confirm_phone_verification(api_version):
+def route_helper_phone_confirm(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)

@@ -8,7 +8,7 @@ from flask import request
 
 
 @app.route('/backend/<api_version>/calls/accept', methods=['POST'])
-def accept_call_route(api_version):
+def route_call_accept(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request, print_out=True)
@@ -50,7 +50,7 @@ api.add_resource(RESTCall, '/backend/database/call')
 
 
 @app.route('/backend/<api_version>/forward/online', methods=['PUT'])
-def set_online_route(api_version):
+def route_call_set_online(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request, print_out=True)
@@ -80,7 +80,7 @@ def set_online_route(api_version):
 
 
 @app.route('/backend/<api_version>/forward/offline', methods=['PUT'])
-def set_offline_route(api_version):
+def route_call_set_offline(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request, print_out=True)

@@ -8,7 +8,7 @@ import time
 
 
 @app.route('/backend/<api_version>/login/admin', methods=['POST'])
-def backend_admin_login(api_version):
+def route_admin_account_login(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
@@ -41,7 +41,7 @@ def backend_admin_login(api_version):
 
 
 @app.route('/backend/<api_version>/logout/admin', methods=['POST'])
-def backend_admin_logout(api_version):
+def route_admin_account_logout(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
