@@ -4,7 +4,7 @@ from flask_backend.support_functions import fetching
 
 from datetime import datetime, timedelta
 from bson import ObjectId
-
+from pymongo import UpdateOne
 
 
 # constants
@@ -127,10 +127,34 @@ def dequeue(helper_id, zip_code=None,
 
 
     # Step 3) Update call (helper_id, status, timestamp_accepted)
-    calls_collection.update_one(
-        {'_id': ObjectId(call_id)},
-        {'$set': {'helper_id': ObjectId(helper_id), 'status': 'accepted', 'timestamp_accepted': current_timestamp}})
 
+    call_update_dict_1 = {
+        "$set": {
+            'status': 'accepted',
+            'helper_id': ObjectId(helper_id),
+            'timestamp_accepted': current_timestamp
+        }
+    }
+
+    # accepted-match if local call was accepted from local queue (successful) or global call
+    # accepted-mismatch if local call was matched with non-local helper
+
+    if "local" in call["call_type"] and call["zip_code"] not in zip_codes_list:
+        new_call_type = "accepted-mismatch"
+    else:
+        new_call_type = "accepted-match"
+
+    call_update_dict_2 = {
+        "$push": {
+            "call_type": new_call_type,
+        }
+    }
+
+    operations = [
+        UpdateOne({'_id': ObjectId(call_id)}, call_update_dict_1),
+        UpdateOne({'_id': ObjectId(call_id)}, call_update_dict_2)
+    ]
+    calls_collection.bulk_write(operations)
 
     # Step 4) Add helper behavior (helper_id, call_id, timestamp, action='accepted'
     new_behavior_log = {

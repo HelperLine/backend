@@ -1,10 +1,14 @@
 
 from flask_backend import app, status, helper_accounts_collection, api
-from flask_backend.database_scripts.helper_account_scripts import api_authentication, forwarding
-from flask_backend.database_scripts.call_scripts import dequeue
+from flask_backend.database_scripts.helper_scripts import api_authentication
+from flask_backend.database_scripts.call_scripts import dequeue, forwarding
 from flask_backend.support_functions import routing, fetching
 
 from flask import request
+
+
+from flask_backend.restful_resources.rest_call import RESTCall
+api.add_resource(RESTCall, '/backend/v1/database/call')
 
 
 @app.route('/backend/<api_version>/calls/accept', methods=['POST'])
@@ -43,10 +47,6 @@ def route_call_accept(api_version):
 
     else:
         return status("api_version invalid")
-
-
-from flask_backend.resources.rest_call import RESTCall
-api.add_resource(RESTCall, '/backend/database/call')
 
 
 @app.route('/backend/<api_version>/forward/online', methods=['PUT'])

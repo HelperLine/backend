@@ -1,5 +1,5 @@
 
-from flask_backend.database_scripts.admin_account_scripts import api_authentication
+from flask_backend.database_scripts.admin_scripts import api_authentication
 from flask_backend.support_functions import routing
 
 from flask_backend import app, status

@@ -85,7 +85,7 @@ if os.getenv('MONGODB_WRITE_CONNECTION_STRING') is not None:
 
 
 
-from flask_backend.routes import helper_account_routes, helper_call_routes, hotline_routes
+from flask_backend.backend_routes import helper_routes, call_routes, hotline_routes
 
 
 if __name__ == '__main__':

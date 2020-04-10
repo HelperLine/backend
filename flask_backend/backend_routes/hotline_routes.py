@@ -1,11 +1,9 @@
 
 from flask_backend import app
-from flask_backend.database_scripts import call_scripts
-from flask_backend.database_scripts.call_scripts import enqueue
-from flask_backend.database_scripts.helper_account_scripts import forwarding
+from flask_backend.database_scripts.call_scripts import call_scripts, enqueue, forwarding
 from flask_backend.support_functions import routing
 
-from flask_backend.routes.hotline_translation import hotline_translation
+from flask_backend.backend_routes.hotline_translation import hotline_translation
 
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from flask import request

@@ -1,11 +1,15 @@
 
 from flask_backend import app, helper_accounts_collection, status, api
-from flask_backend.database_scripts.helper_account_scripts import api_authentication, email_verification, phone_verification
+from flask_backend.database_scripts.helper_scripts import api_authentication, email_verification, phone_verification
 from flask_backend.support_functions import routing
 
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from flask import redirect, request
 import time
+
+
+from flask_backend.restful_resources.rest_helper import RESTHelper
+api.add_resource(RESTHelper, '/backend/v1/database/helper')
 
 
 @app.route('/backend/<api_version>/login/helper', methods=['POST'])
@@ -55,19 +59,6 @@ def route_helper_account_logout(api_version):
 
     else:
         return status("api_version invalid")
-
-
-
-
-
-
-
-from flask_backend.resources.rest_helper_account import RESTAccount
-api.add_resource(RESTAccount, '/backend/v1/database/account')
-
-
-
-
 
 
 @app.route('/backend/<api_version>/email/verify/<verification_token>')

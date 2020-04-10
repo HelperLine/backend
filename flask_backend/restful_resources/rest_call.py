@@ -1,7 +1,7 @@
 
 from flask_backend import status, calls_collection, helper_accounts_collection
-from flask_backend.database_scripts.helper_account_scripts import api_authentication
-from flask_backend.database_scripts.call_scripts import fulfill_call, reject_call, comment_call
+from flask_backend.database_scripts.helper_scripts import api_authentication
+from flask_backend.database_scripts.call_scripts import call_scripts
 from flask_backend.support_functions import routing, fetching
 
 from flask_restful import Resource
@@ -54,16 +54,16 @@ class RESTCall(Resource):
 
 
         if params_dict["action"] == "fulfill":
-            fulfill_call(str(params_dict["call_id"]), str(call["helper_id"]))
+            call_scripts.fulfill_call(str(params_dict["call_id"]), str(call["helper_id"]))
 
         elif params_dict["action"] == "reject":
-            reject_call(str(params_dict["call_id"]), str(call["helper_id"]))
+            call_scripts.reject_call(str(params_dict["call_id"]), str(call["helper_id"]))
 
         elif params_dict["action"] == "comment":
             if 'comment' not in params_dict:
                 return status('comment missing')
 
-            comment_call(str(params_dict["call_id"]), params_dict["comment"])
+            call_scripts.comment_call(str(params_dict["call_id"]), params_dict["comment"])
         else:
             return status('action invalid')
 

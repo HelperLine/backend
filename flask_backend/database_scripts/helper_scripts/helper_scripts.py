@@ -1,7 +1,7 @@
 
 from flask_backend import helper_accounts_collection, status, helper_api_keys_collection, email_tokens_collection
-from flask_backend.database_scripts.helper_account_scripts import email_verification, verify_register_form, api_authentication
-from flask_backend.support_functions import tokening, fetching
+from flask_backend.database_scripts.helper_scripts import email_verification, verify_register_form, api_authentication
+from flask_backend.support_functions import tokening, fetching, verifying
 
 from pymongo.errors import DuplicateKeyError
 import datetime
@@ -85,7 +85,7 @@ def modify_helper_account(email, **kwargs):
         if (email != kwargs['new_email']) and (helper_account['email_verified']):
             return status('email already verified')
         else:
-            if not verify_register_form.verify_email_format(kwargs['new_email']):
+            if not verifying.verify_email_format(kwargs['new_email']):
                 return status('email format invalid')
             else:
                 new_email = kwargs['new_email']
@@ -94,7 +94,7 @@ def modify_helper_account(email, **kwargs):
 
     if 'old_password' in kwargs and 'new_password' in kwargs:
         if tokening.check_password(kwargs['old_password'], helper_account['hashed_password']):
-            if not verify_register_form.verify_password_format(kwargs['new_password']):
+            if not verifying.verify_password_format(kwargs['new_password']):
                 return status('password format invalid')
             else:
                 new_password = tokening.hash_password(kwargs['new_password'])
@@ -104,7 +104,7 @@ def modify_helper_account(email, **kwargs):
         new_password = helper_account['hashed_password']
 
     if 'zip_code' in kwargs:
-        if not verify_register_form.verify_zip_code_format(kwargs['zip_code']):
+        if not verifying.verify_zip_code_format(kwargs['zip_code']):
             return status('zip code format invalid')
         else:
             new_zip_code = kwargs['zip_code']
@@ -112,7 +112,7 @@ def modify_helper_account(email, **kwargs):
         new_zip_code = helper_account['zip_code']
 
     if 'country' in kwargs:
-        if not verify_register_form.verify_country_format(kwargs['country']):
+        if not verifying.verify_country_format(kwargs['country']):
             return status('country invalid')
         else:
             new_country = kwargs['country']
