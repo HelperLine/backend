@@ -35,7 +35,7 @@ def admin_login_password(email, password):
             api_key = admin_create_new_api_key(email)
             return status('ok', email=email, api_key=api_key)
 
-    return {'status': 'invalid email/password'}
+    return status('email/password invalid')
 
 
 def admin_login_api_key(email, api_key, new_api_key=False):
@@ -45,16 +45,14 @@ def admin_login_api_key(email, api_key, new_api_key=False):
         if api_key == admin_api_key['api_key']:
             if new_api_key:
                 api_key = admin_create_new_api_key(email)
-
             return status('ok', email=email, api_key=api_key)
 
-    return {'status': 'invalid email/api_key'}
-
-
-# ---------------------------------------------------------------------------------------------------------------------
+    return status('email/api_key invalid')
 
 
 def admin_logout(email, api_key):
     helper_api_key = admin_api_keys_collection.find_one({'email': email})
     if api_key == helper_api_key['api_key']:
         admin_delete_api_key(email)
+
+    return status('ok')

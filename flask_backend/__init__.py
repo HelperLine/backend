@@ -7,7 +7,8 @@ from flask_restful import Api
 
 try:
     from flask_backend.secrets import MONGODB_WRITE_CONNECTION_STRING
-    from flask_backend.secrets import SECRET_KEY, BCRYPT_SALT, GCP_API_KEY, SENDGRID_API_KEY, BACKEND_URL
+    from flask_backend.secrets import SECRET_KEY, BCRYPT_SALT, GCP_API_KEY, SENDGRID_API_KEY
+    from flask_backend.secrets import BACKEND_URL, FRONTEND_URL
 except Exception:
 
     # The secrets file will not be included in any repository and will
@@ -19,7 +20,9 @@ except Exception:
     BCRYPT_SALT = os.getenv('BCRYPT_SALT')
     GCP_API_KEY = os.getenv('GCP_API_KEY')
     SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+
     BACKEND_URL = os.getenv('BACKEND_URL')
+    FRONTEND_URL = os.getenv('FRONTEND_URL')
 
 
 import os

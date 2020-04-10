@@ -1,4 +1,4 @@
-from flask_backend import status, caller_accounts_collection, calls_collection, helper_behavior_collection
+from flask_backend import status, caller_accounts_collection, calls_collection, helper_behavior_collection, helper_accounts_collection
 from flask_backend.database_scripts.call_scripts import enqueue, dequeue
 from flask_backend.support_functions import fetching
 
@@ -66,20 +66,31 @@ def set_confirmed(call_id, confirmed):
         calls_collection.delete_one({'_id': ObjectId(call_id)})
 
 
-def accept_call(helper_id, zip_code,
-                only_local_calls, only_global_calls,
-                accept_german, accept_english):
+def accept_call(params_dict):
     # call_id and agent_id are assumed to be valid
 
-    dequeue_result = dequeue.dequeue(helper_id=helper_id,
-                                     only_local_calls=only_local_calls,
-                                     only_global_calls=only_global_calls,
-                                     accept_german=accept_german)
+    helper = helper_accounts_collection.find_one({'email': params_dict['email']})
+
+    if helper is None:
+        return status('server error: helper record not found')
+
+    if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
+            'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
+        return status('filter parameters missing')
+
+    dequeue_result = dequeue.dequeue(
+        str(helper['_id']),
+        zip_code=helper['zip_code'],
+        only_local_calls=params_dict['filter_type_local'],
+        only_global_calls=params_dict['filter_type_global'],
+        accept_german=params_dict['filter_language_german'],
+        accept_english=params_dict['filter_language_english']
+    )
 
     if dequeue_result['status'] != 'ok':
         return dequeue_result
     else:
-        return fetching.get_all_helper_data(helper_id=helper_id)
+        return fetching.get_all_helper_data(email=params_dict['email'])
 
 
 def fulfill_call(call_id, helper_id):
@@ -140,7 +151,7 @@ def reject_call(call_id, helper_id):
 
 
 def comment_call(call_id, comment):
-    calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': {'comment': comment}})
+    calls_collection({'_id': ObjectId(call_id)}, {'$set': {'comment': comment}})
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ from flask_backend.support_functions import tokening
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import *
 from pymongo import DeleteMany, InsertOne
+from bson import ObjectId
 
 
 def send_verification_mail(email, verification_token):
@@ -29,11 +30,17 @@ def verify_email(verification_token):
         email_tokens_collection.delete_many({'helper_id': record['helper_id']})
 
 
-def trigger_email_verification(helper_id, email):
+def trigger_email_verification(email):
     # this function can be used for the initial send as well as resending
+
+    helper_account = helper_accounts_collection.find_one({'email': email})
+
+    if helper_account['email_verified']:
+        return status('email already verified')
 
     # Generate new token
     verification_token = tokening.generate_random_key(length=64)
+    helper_id = ObjectId(helper_account["_id"])
 
     # Create new token record
     record = {'helper_id': helper_id, 'token': verification_token}

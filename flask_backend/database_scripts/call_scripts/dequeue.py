@@ -27,7 +27,7 @@ def dequeue(helper_id, zip_code=None,
     current_timestamp = datetime.now()
 
     if only_local_calls and only_global_calls:
-        return status('invalid function call')
+        return status('invalid function call - only_local = only_global = True')
 
 
 
@@ -36,7 +36,7 @@ def dequeue(helper_id, zip_code=None,
     if any([e is None] for e in [zip_code, only_local_calls, only_global_calls, accept_english, accept_german]) is None:
         helper = helper_accounts_collection.find_one({'_id': ObjectId(helper_id)})
         if helper is None:
-            return status('helper id invalid')
+            return status('helper_id invalid')
 
         zip_code = helper['zip_code'] if (zip_code is None) else zip_code
         only_local_calls = helper['filter_type_local'] if (only_local_calls is None) else only_local_calls
@@ -155,6 +155,8 @@ def dequeue(helper_id, zip_code=None,
         UpdateOne({'_id': ObjectId(call_id)}, call_update_dict_2)
     ]
     calls_collection.bulk_write(operations)
+
+
 
     # Step 4) Add helper behavior (helper_id, call_id, timestamp, action='accepted'
     new_behavior_log = {

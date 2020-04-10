@@ -1,8 +1,7 @@
 
 from flask_backend import status, calls_collection, helper_accounts_collection
-from flask_backend.database_scripts.helper_scripts import api_authentication
 from flask_backend.database_scripts.call_scripts import call_scripts
-from flask_backend.support_functions import routing, fetching
+from flask_backend.support_functions import routing, fetching, tokening
 
 from flask_restful import Resource
 from flask import request
@@ -16,19 +15,22 @@ class RESTCall(Resource):
 
     def put(self):
         # Modify an existing account
-        params_dict = routing.get_params_dict(request, print_out=True)
-
-        if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
-            return {'status': 'email/api_key invalid'}
+        params_dict = routing.get_params_dict(request)
 
 
+        # Step 1) Authenticate
+
+        authentication_result = tokening.check_admin_api_key(params_dict)
+        if authentication_result["status"] != "ok":
+            return authentication_result
+
+
+
+        # Step 2) Check database correctness
 
         helper = helper_accounts_collection.find_one({"email": params_dict["email"]})
-
         if helper is None:
-            return status("backend error")
-
-
+            return status("backend error - helper record not found after successful authentication")
 
         if 'call_id' not in params_dict:
             return status('call_id missing')
@@ -40,31 +42,37 @@ class RESTCall(Resource):
 
 
 
+        # Step 3) Check eligibility to modify this call
+
         if str(call["helper_id"]) != str(helper["_id"]):
             return status("not authorized to edit this call")
 
-
-
-        if 'action' not in params_dict:
-            return status('call_action missing')
-
-
-        if params_dict["action"] in ["fulfill", "reject"] and call["status"] == "fulfilled":
+        if call["status"] == "fulfilled":
             return status('cannot change a fulfilled call')
 
 
+
+        # Step 4) Execute action if possible
+
+        if 'action' not in params_dict:
+            status('action missing')
+
         if params_dict["action"] == "fulfill":
-            call_scripts.fulfill_call(str(params_dict["call_id"]), str(call["helper_id"]))
+            call_scripts.fulfill_call(params_dict["call_id"], helper["_id"])
 
         elif params_dict["action"] == "reject":
-            call_scripts.reject_call(str(params_dict["call_id"]), str(call["helper_id"]))
+            call_scripts.reject_call(params_dict["call_id"], helper["_id"])
 
         elif params_dict["action"] == "comment":
             if 'comment' not in params_dict:
                 return status('comment missing')
 
-            call_scripts.comment_call(str(params_dict["call_id"]), params_dict["comment"])
+            call_scripts.comment_call(params_dict["call_id"], params_dict["comment"])
         else:
             return status('action invalid')
+
+
+
+        # Step 5) Fetch new account state
 
         return fetching.get_all_helper_data(email=params_dict["email"])

@@ -8,10 +8,17 @@ import datetime
 import time
 
 
-def add_helper_account(email, password, zip_code, country='Germany'):
-    verification_status = verify_register_form.verify_register_form(email, password, zip_code, country)
+def add_helper_account(params_dict):
+    for key in ['email', 'password', 'zip_code', 'country']:
+        if key not in params_dict:
+            return status(f'{key} missing')
 
-    print(verification_status)
+    email = params_dict["email"]
+    password = params_dict["password"]
+    zip_code = params_dict["zip_code"]
+    country = params_dict["country"]
+
+    verification_status = verify_register_form.verify_register_form(email, password, zip_code, country)
 
     if verification_status['status'] == 'ok':
         new_helper = {
@@ -48,7 +55,7 @@ def add_helper_account(email, password, zip_code, country='Germany'):
             return status('email already taken')
 
         # Send verification email and add verification record
-        email_verification.trigger_email_verification(helper_id, email)
+        email_verification.trigger_email_verification(email)
 
         # login and return email/api_key dict
         return api_authentication.helper_login_password(email, password)
@@ -57,65 +64,68 @@ def add_helper_account(email, password, zip_code, country='Germany'):
         return verification_status
 
 
-def modify_helper_account(email, **kwargs):
+def modify_helper_account(params_dict):
+
+    email = params_dict["email"]  # proven to exists after authentication
+
     helper_account = helper_accounts_collection.find_one({'email': email})
 
     new_filter_type_local = new_filter_type_global = None
 
-    if 'filter_type_local' in kwargs and 'filter_type_global' in kwargs:
-        if not (kwargs['filter_type_local'] and kwargs['filter_type_global']):
-            new_filter_type_local = kwargs['filter_type_local']
-            new_filter_type_global = kwargs['filter_type_global']
+    if 'filter_type_local' in params_dict and 'filter_type_global' in params_dict:
+        if not (params_dict['filter_type_local'] and params_dict['filter_type_global']):
+            new_filter_type_local = params_dict['filter_type_local']
+            new_filter_type_global = params_dict['filter_type_global']
 
     if new_filter_type_local is None or new_filter_type_global is None:
         new_filter_type_local = helper_account['filter_type_local']
         new_filter_type_global = helper_account['filter_type_global']
 
-    if 'filter_language_german' in kwargs:
-        new_filter_language_german = kwargs['filter_language_german']
+    if 'filter_language_german' in params_dict:
+        new_filter_language_german = params_dict['filter_language_german']
     else:
         new_filter_language_german = helper_account['filter_language_german']
 
-    if 'filter_language_english' in kwargs:
-        new_filter_language_english = kwargs['filter_language_english']
+    if 'filter_language_english' in params_dict:
+        new_filter_language_english = params_dict['filter_language_english']
     else:
         new_filter_language_english = helper_account['filter_language_english']
 
-    if 'new_email' in kwargs:
-        if (email != kwargs['new_email']) and (helper_account['email_verified']):
+    if 'new_email' in params_dict:
+        if (email != params_dict['new_email']) and (helper_account['email_verified']):
             return status('email already verified')
         else:
-            if not verifying.verify_email_format(kwargs['new_email']):
+            if not verifying.verify_email_format(params_dict['new_email']):
                 return status('email format invalid')
             else:
-                new_email = kwargs['new_email']
+                new_email = params_dict['new_email']
     else:
         new_email = email
 
-    if 'old_password' in kwargs and 'new_password' in kwargs:
-        if tokening.check_password(kwargs['old_password'], helper_account['hashed_password']):
-            if not verifying.verify_password_format(kwargs['new_password']):
+    if 'old_password' in params_dict and 'new_password' in params_dict:
+        if tokening.check_password(params_dict['old_password'], helper_account['hashed_password']):
+            if not verifying.verify_password_format(params_dict['new_password']):
                 return status('password format invalid')
             else:
-                new_password = tokening.hash_password(kwargs['new_password'])
+                new_password = tokening.hash_password(params_dict['new_password'])
         else:
             return status('old password invalid')
     else:
         new_password = helper_account['hashed_password']
 
-    if 'zip_code' in kwargs:
-        if not verifying.verify_zip_code_format(kwargs['zip_code']):
+    if 'zip_code' in params_dict:
+        if not verifying.verify_zip_code_format(params_dict['zip_code']):
             return status('zip code format invalid')
         else:
-            new_zip_code = kwargs['zip_code']
+            new_zip_code = params_dict['zip_code']
     else:
         new_zip_code = helper_account['zip_code']
 
-    if 'country' in kwargs:
-        if not verifying.verify_country_format(kwargs['country']):
+    if 'country' in params_dict:
+        if not verifying.verify_country_format(params_dict['country']):
             return status('country invalid')
         else:
-            new_country = kwargs['country']
+            new_country = params_dict['country']
     else:
         new_country = helper_account['country']
 
@@ -144,7 +154,7 @@ def modify_helper_account(email, **kwargs):
         if email != new_email:
             helper_api_keys_collection.update_one({'email': email}, {'$set': {'email': new_email}})
             email_tokens_collection.delete_one({'email': email})
-            email_verification.trigger_email_verification(helper_account['_id'], new_email)
+            email_verification.trigger_email_verification(new_email)
 
         # api_key remains the same
         response_dict = fetching.get_all_helper_data(new_email)

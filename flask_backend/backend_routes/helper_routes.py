@@ -1,7 +1,7 @@
 
-from flask_backend import app, helper_accounts_collection, status, api
+from flask_backend import app, status, api, FRONTEND_URL
 from flask_backend.database_scripts.helper_scripts import api_authentication, email_verification, phone_verification
-from flask_backend.support_functions import routing
+from flask_backend.support_functions import routing, tokening
 
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from flask import redirect, request
@@ -31,18 +31,15 @@ def route_helper_account_login(api_version):
 
         # Automatic re-login from webapp
         elif email is not None and api_key is not None:
-            # TODO: Generate new API Key for every login request in production!
             login_result_dict = api_authentication.helper_login_api_key(email, api_key)
 
         else:
-            login_result_dict = status('missing parameter email/password/api_key')
+            login_result_dict = status('email/password/api_key missing')
 
         return login_result_dict
 
     else:
         return status("api_version invalid")
-
-
 
 
 @app.route('/backend/<api_version>/logout/helper', methods=['POST'])
@@ -51,11 +48,11 @@ def route_helper_account_logout(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        if 'email' not in params_dict or 'api_key' not in params_dict:
-            return status('missing parameter email/api_key')
+        authentication_result = tokening.check_admin_api_key(params_dict)
+        if authentication_result["status"] != "ok":
+            return authentication_result
 
-        api_authentication.helper_logout(params_dict['email'], params_dict['api_key'])
-        return status('ok')
+        return api_authentication.helper_logout(params_dict['email'], params_dict['api_key'])
 
     else:
         return status("api_version invalid")
@@ -66,7 +63,7 @@ def route_helper_email_verify(api_version, verification_token):
 
     if api_version == "v1":
         email_verification.verify_email(verification_token)
-        return redirect('/calls')
+        return redirect(FRONTEND_URL + 'calls')
 
     else:
         return status("api_version invalid")
@@ -78,27 +75,14 @@ def route_helper_email_resend(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        if 'email' not in params_dict or 'api_key' not in params_dict:
-            return status('missing parameter email/api_key')
+        authentication_result = tokening.check_admin_api_key(params_dict)
+        if authentication_result["status"] != "ok":
+            return authentication_result
 
-        else:
-            login_dict = api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])
-            if login_dict['status'] == 'ok':
-
-                helper_account = helper_accounts_collection.find_one({'email': params_dict['email']})
-
-                if not helper_account['email_verified']:
-                    email_verification.trigger_email_verification(helper_account['_id'], helper_account['email'])
-                    return status('ok')
-                else:
-                    return status('email already verified')
-            else:
-                return status('email/api_key invalid')
+        return email_verification.trigger_email_verification(params_dict['email'])
 
     else:
         return status("api_version invalid")
-
-
 
 
 @app.route('/backend/<api_version>/phone/trigger', methods=['POST'])
@@ -107,15 +91,11 @@ def route_helper_phone_trigger(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        if 'email' not in params_dict or 'api_key' not in params_dict:
-            return status('missing parameter email/api_key')
+        authentication_result = tokening.check_admin_api_key(params_dict)
+        if authentication_result["status"] != "ok":
+            return authentication_result
 
-        if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
-            return {'status': 'invalid request'}
-
-        helper_account = helper_accounts_collection.find_one({'email': params_dict['email']}, {'_id': 1})
-
-        return phone_verification.trigger_phone_number_verification(helper_account['_id'])
+        return phone_verification.trigger_phone_verification(params_dict['email'])
 
     else:
         return status("api_version invalid")
@@ -155,15 +135,11 @@ def route_helper_phone_confirm(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        if 'email' not in params_dict or 'api_key' not in params_dict:
-            return status('missing parameter email/api_key')
+        authentication_result = tokening.check_admin_api_key(params_dict)
+        if authentication_result["status"] != "ok":
+            return authentication_result
 
-        if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
-            return status('invalid request')
-
-        helper_account = helper_accounts_collection.find_one({'email': params_dict['email']})
-
-        return phone_verification.confirm_phone_number_verification(helper_account)
+        return phone_verification.confirm_phone_verification(params_dict['email'])
 
     else:
         return status("api_version invalid")

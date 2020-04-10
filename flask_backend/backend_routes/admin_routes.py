@@ -1,6 +1,6 @@
 
 from flask_backend.database_scripts.admin_scripts import api_authentication
-from flask_backend.support_functions import routing
+from flask_backend.support_functions import routing, tokening
 
 from flask_backend import app, status
 from flask import request
@@ -16,23 +16,21 @@ def route_admin_account_login(api_version):
         # Artificial delay to further prevent brute forcing
         time.sleep(0.05)
 
-        email = params_dict['admin_email']
-        password = params_dict['admin_password']
-        api_key = params_dict['admin_api_key']
+        email = params_dict['email']
+        password = params_dict['password']
+        api_key = params_dict['api_key']
 
-        # Initial login
+        # initial login
         if email is not None and password is not None:
-            login_result_dict = api_authentication.admin_login_password(email, password)
+            return api_authentication.admin_login_password(email, password)
 
-        # Automatic re-login from webapp
+        # automatic re-login from webapp
         elif email is not None and api_key is not None:
-            # TODO: Generate new API Key for every login request in production!
-            login_result_dict = api_authentication.admin_login_api_key(email, api_key)
+            return api_authentication.admin_login_api_key(email, api_key)
 
+        # invalid request
         else:
-            login_result_dict = status('missing parameter admin_email/admin_password/admin_api_key')
-
-        return login_result_dict
+            return status('email/password/api_key missing')
 
     else:
         return status("api_version invalid")
@@ -46,11 +44,11 @@ def route_admin_account_logout(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        if 'admin_email' not in params_dict or 'admin_api_key' not in params_dict:
-            return status('missing parameter admin_email/admin_api_key')
+        authentication_result = tokening.check_admin_api_key(params_dict)
+        if authentication_result["status"] != "ok":
+            return authentication_result
 
-        api_authentication.admin_logout(params_dict['admin_email'], params_dict['admin_api_key'])
-        return status('ok')
+        return api_authentication.admin_logout(params_dict['email'], params_dict['api_key'])
 
     else:
         return status("api_version invalid")

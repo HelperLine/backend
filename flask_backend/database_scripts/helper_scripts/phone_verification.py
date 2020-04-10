@@ -36,11 +36,14 @@ def verify_phone_number(token='', phone_number=''):
     return status('ok')
 
 
-def trigger_phone_number_verification(helper_id):
+def trigger_phone_verification(email):
     # this function can be used for the initial send as well as resending
+
+    helper_account = helper_accounts_collection.find_one({'email': email}, {'_id': 1})
 
     # Generate new token
     token = tokening.generate_random_key(length=5, numeric=True)
+    helper_id = ObjectId(helper_account["_id"])
 
     # Create new token record
     record = {
@@ -58,16 +61,19 @@ def trigger_phone_number_verification(helper_id):
     return status('ok', token=token)
 
 
-def confirm_phone_number_verification(helper_account):
+def confirm_phone_verification(email):
     # this function can be used for the initial send as well as resending
+    helper_account = helper_accounts_collection.find_one({'email': email}, {'_id': 1})
+    helper_id = ObjectId(helper_account["_id"])
+
     helper_accounts_collection.update_one(
-        {'_id': ObjectId(helper_account['_id'])},
+        {'_id': helper_id},
         {'$set': {
             'phone_number_confirmed': True
         }}
     )
 
-    return fetching.get_all_helper_data(helper_account['email'])
+    return fetching.get_all_helper_data(email)
 
 
 if __name__ == '__main__':
