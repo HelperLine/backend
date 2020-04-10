@@ -1,6 +1,6 @@
+
 from flask_backend import status, call_queue, calls_collection
 
-# These functions will just be called internally!
 from bson import ObjectId
 
 
@@ -9,7 +9,7 @@ def enqueue(call_id):
     call = calls_collection.find_one({'_id': ObjectId(call_id)})
 
     if call is None:
-        return status('call id invalid')
+        return status('call_id invalid')
 
     if call_queue.find_one({'call_id': ObjectId(call_id)}, {'_id': 0, 'call_id': 1}) is not None:
         return status('call already in queue')

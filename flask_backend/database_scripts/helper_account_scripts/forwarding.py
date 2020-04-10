@@ -1,11 +1,10 @@
 
 from flask_backend import helper_accounts_collection, status, calls_collection, helper_behavior_collection
-from bson import ObjectId
-from datetime import datetime, timedelta
-
-from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_all_helper_data, get_adjacent_zip_codes
+from flask_backend.support_functions import fetching
 
 from pymongo import UpdateOne
+from bson import ObjectId
+from datetime import datetime, timedelta
 
 
 def set_online(helper_id,
@@ -31,7 +30,7 @@ def set_online(helper_id,
     }
     helper_accounts_collection.update_one({"_id": ObjectId(helper_id)}, {"$set": helper_update})
 
-    return get_all_helper_data(helper_id=helper_id)
+    return fetching.get_all_helper_data(helper_id=helper_id)
 
 
 def set_offline(helper_id):
@@ -40,7 +39,7 @@ def set_offline(helper_id):
     }
     helper_accounts_collection.update_one({"_id": ObjectId(helper_id)}, {"$set": helper_update})
 
-    return get_all_helper_data(helper_id=helper_id)
+    return fetching.get_all_helper_data(helper_id=helper_id)
 
 
 def find_forward_helper(call_id):
@@ -79,7 +78,7 @@ def find_forward_helper(call_id):
                     "online": True,
                     "last_switched_online": {"$gt": datetime.now() - timedelta(minutes=120)},
 
-                    "zip_code": {"$in": get_adjacent_zip_codes(call['zip_code'])}
+                    "zip_code": {"$in": fetching.get_adjacent_zip_codes(call['zip_code'])}
                 }, {
                     "$or": [
                         {"filter_type_local": True},
@@ -178,12 +177,3 @@ def flag_helper(call_id, helper_id, dial_call_status):
         'action': f'call not successful - DialCallStatus = {dial_call_status}',
     }
     helper_behavior_collection.insert_one(new_behavior_log)
-
-
-
-
-
-
-
-
-

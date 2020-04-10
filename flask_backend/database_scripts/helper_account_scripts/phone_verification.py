@@ -1,11 +1,9 @@
 
 from flask_backend import status, helper_accounts_collection, phone_tokens_collection
-from flask_backend.nosql_scripts.helper_account_scripts import support_functions
+from flask_backend.support_functions import tokening, fetching
 
 from pymongo import DeleteMany, InsertOne
 from datetime import datetime, timedelta
-
-
 from bson import ObjectId
 
 
@@ -42,7 +40,7 @@ def trigger_phone_number_verification(helper_id):
     # this function can be used for the initial send as well as resending
 
     # Generate new token
-    token = support_functions.generate_random_key(length=5, numeric=True)
+    token = tokening.generate_random_key(length=5, numeric=True)
 
     # Create new token record
     record = {
@@ -69,7 +67,7 @@ def confirm_phone_number_verification(helper_account):
         }}
     )
 
-    return support_functions.get_all_helper_data(helper_account['email'])
+    return fetching.get_all_helper_data(helper_account['email'])
 
 
 if __name__ == '__main__':

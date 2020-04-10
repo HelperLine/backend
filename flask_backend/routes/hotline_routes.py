@@ -1,14 +1,15 @@
 
-from flask import request
 from flask_backend import app
-from twilio.twiml.voice_response import VoiceResponse, Gather
+from flask_backend.database_scripts import call_scripts
+from flask_backend.database_scripts.call_scripts import enqueue
+from flask_backend.database_scripts.helper_account_scripts import forwarding
+from flask_backend.support_functions import routing
 
-from flask_backend.nosql_scripts import call_scripts
-from flask_backend.nosql_scripts.call_scripts import enqueue
-from flask_backend.nosql_scripts.helper_account_scripts import forwarding
 from flask_backend.routes.hotline_translation import hotline_translation
 
-from flask_backend.routes import support_functions
+from twilio.twiml.voice_response import VoiceResponse, Gather
+from flask import request
+
 
 language_translation = {
     'de': 'german',
@@ -68,7 +69,7 @@ def hotline_question_1(language):
             resp.redirect(f'/hotline/{language}/question/2')
             return str(resp)
         elif choice == '2':
-            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)['Caller'])['caller_id']
+            caller_id = call_scripts.add_caller(routing.get_params_dict(request)['Caller'])['caller_id']
             call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), call_type='global')['call_id']
             resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
@@ -99,7 +100,7 @@ def hotline_question_2(language):
 
         if len(zip_code) == 5 and finished_on_key == '#':
 
-            caller_id = call_scripts.add_caller(support_functions.get_params_dict(request)['Caller'])['caller_id']
+            caller_id = call_scripts.add_caller(routing.get_params_dict(request)['Caller'])['caller_id']
             call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), call_type='local', zip_code=zip_code)['call_id']
             resp.redirect(f'/hotline/{language}/question/3/{call_id}')
             return str(resp)
@@ -200,7 +201,7 @@ def hotline_forward(language, call_id):
 @app.route('/hotline/<language>/after-forward/<call_id>/<helper_id>', methods=['GET', 'POST'])
 def hotline_after_forward(language, call_id, helper_id):
 
-    forward_call_result = support_functions.get_params_dict(request)
+    forward_call_result = routing.get_params_dict(request)
     dial_call_status = forward_call_result["DialCallStatus"]
 
     resp = VoiceResponse()

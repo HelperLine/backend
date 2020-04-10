@@ -1,18 +1,15 @@
 
 from flask_backend import app, status, helper_accounts_collection, api
-from flask_backend.routes import support_functions as support_functions_rest
-from flask_backend.nosql_scripts.helper_account_scripts import api_authentication, forwarding
-from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_all_helper_data
-
-from flask_backend.nosql_scripts.call_scripts import dequeue
+from flask_backend.database_scripts.helper_account_scripts import api_authentication, forwarding
+from flask_backend.database_scripts.call_scripts import dequeue
+from flask_backend.support_functions import routing, fetching
 
 from flask import request
 
 
-
 @app.route('/backend/calls/accept', methods=['POST'])
 def accept_call_route():
-    params_dict = support_functions_rest.get_params_dict(request, print_out=True)
+    params_dict = routing.get_params_dict(request, print_out=True)
 
     if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
         return status('invalid email/api_key')
@@ -38,7 +35,7 @@ def accept_call_route():
     if dequeue_result['status'] != 'ok':
         return dequeue_result
     else:
-        return_result = get_all_helper_data(helper_id=str(helper['_id']))
+        return_result = fetching.get_all_helper_data(helper_id=str(helper['_id']))
         print(return_result)
         return return_result
 
@@ -50,7 +47,7 @@ api.add_resource(RESTCall, '/backend/database/call')
 
 @app.route('/backend/forward/online', methods=['PUT'])
 def set_online_route():
-    params_dict = support_functions_rest.get_params_dict(request, print_out=True)
+    params_dict = routing.get_params_dict(request, print_out=True)
 
     if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
         return status('invalid email/api_key')
@@ -75,7 +72,7 @@ def set_online_route():
 
 @app.route('/backend/forward/offline', methods=['PUT'])
 def set_offline_route():
-    params_dict = support_functions_rest.get_params_dict(request, print_out=True)
+    params_dict = routing.get_params_dict(request, print_out=True)
 
     if api_authentication.helper_login_api_key(params_dict['email'], params_dict['api_key'])['status'] != 'ok':
         return status('invalid email/api_key')

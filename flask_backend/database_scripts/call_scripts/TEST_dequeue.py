@@ -1,10 +1,10 @@
 from flask_backend import call_queue, helper_accounts_collection, helper_behavior_collection, calls_collection
-from flask_backend.nosql_scripts.call_scripts import enqueue, dequeue, support_functions
-from flask_backend.nosql_scripts.call_scripts.TEST_enqueue import check_queues
+from flask_backend.database_scripts.call_scripts import enqueue, dequeue
+from flask_backend.support_functions import testing
 
 from datetime import datetime, timedelta
-
 from bson import ObjectId
+
 
 test_helper = {
     'calls': [],
@@ -75,7 +75,7 @@ def check_helper_queue(test_no, should_be, helper_id):
         'name': f'Test {test_no} (helper calls list)',
     }
 
-    if support_functions.lists_match(should_be, actual):
+    if testing.lists_match(should_be, actual):
         result.update({'result': True})
     else:
         result.update({
@@ -231,23 +231,23 @@ def test_dequeue_local():
 
     results = []
 
-    results += check_queues(1, [A, C, G, F, E], [B, D, E, G], [D, E])
+    results += testing.check_queues(1, [A, C, G, F, E], [B, D, E, G], [D, E])
 
     dequeue_1 = dequeue.dequeue(helper_id, only_local_calls=True)
     results += check_dequeue_result(2, E, dequeue_1)
-    results += check_queues(3, [A, C, G, F], [B, D, G], [D])
+    results += testing.check_queues(3, [A, C, G, F], [B, D, G], [D])
     results += check_helper_queue(4, [E], helper_id)
     results += check_call_record(5, E, helper_id)
 
     dequeue_2 = dequeue.dequeue(helper_id, only_local_calls=True)
     results += check_dequeue_result(6, C, dequeue_2)
-    results += check_queues(7, [A, G, F], [B, D, G], [D])
+    results += testing.check_queues(7, [A, G, F], [B, D, G], [D])
     results += check_helper_queue(8, [E, C], helper_id)
     results += check_call_record(9, C, helper_id)
 
     dequeue_3 = dequeue.dequeue(helper_id, only_local_calls=True)
     results += check_dequeue_result(10, A, dequeue_3)
-    results += check_queues(11, [G, F], [B, D, G], [D])
+    results += testing.check_queues(11, [G, F], [B, D, G], [D])
     results += check_helper_queue(12, [E, C, A], helper_id)
     results += check_call_record(13, A, helper_id)
 
@@ -297,17 +297,17 @@ def test_dequeue_global():
 
     results = []
 
-    results += check_queues(15, [A, C, G, F, E], [B, D, E, G], [D, E])
+    results += testing.check_queues(15, [A, C, G, F, E], [B, D, E, G], [D, E])
 
     dequeue_1 = dequeue.dequeue(helper_id, only_global_calls=True)
     results += check_dequeue_result(16, D, dequeue_1)
-    results += check_queues(17, [A, C, G, F, E], [B, E, G], [E])
+    results += testing.check_queues(17, [A, C, G, F, E], [B, E, G], [E])
     results += check_helper_queue(18, [D], helper_id)
     results += check_call_record(19, D, helper_id)
 
     dequeue_2 = dequeue.dequeue(helper_id, only_global_calls=True)
     results += check_dequeue_result(20, B, dequeue_2)
-    results += check_queues(21, [A, C, G, F, E], [E, G], [E])
+    results += testing.check_queues(21, [A, C, G, F, E], [E, G], [E])
     results += check_helper_queue(22, [D, B], helper_id)
     results += check_call_record(23, B, helper_id)
 
@@ -357,7 +357,7 @@ def test_dequeue_everywhere():
 
     results = []
 
-    results += check_queues(25, [A, C, G, F, E], [B, D, E, G], [D, E])
+    results += testing.check_queues(25, [A, C, G, F, E], [B, D, E, G], [D, E])
 
     '''
     results += check_dequeue_result(2, D, dequeue.dequeue(helper_id))
@@ -372,37 +372,37 @@ def test_dequeue_everywhere():
 
     dequeue_1 = dequeue.dequeue(helper_id)
     results += check_dequeue_result(26, D, dequeue_1)
-    results += check_queues(27, [A, C, G, F, E], [B, E, G], [E])
+    results += testing.check_queues(27, [A, C, G, F, E], [B, E, G], [E])
     results += check_helper_queue(28, [D], helper_id)
     results += check_call_record(29, D, helper_id)
 
     dequeue_2 = dequeue.dequeue(helper_id)
     results += check_dequeue_result(30, E, dequeue_2)
-    results += check_queues(31, [A, C, G, F], [B, G], [])
+    results += testing.check_queues(31, [A, C, G, F], [B, G], [])
     results += check_helper_queue(32, [D, E], helper_id)
     results += check_call_record(33, E, helper_id)
 
     dequeue_3 = dequeue.dequeue(helper_id)
     results += check_dequeue_result(34, C, dequeue_3)
-    results += check_queues(35, [A, G, F], [B, G], [])
+    results += testing.check_queues(35, [A, G, F], [B, G], [])
     results += check_helper_queue(36, [D, E, C], helper_id)
     results += check_call_record(37, C, helper_id)
 
     dequeue_4 = dequeue.dequeue(helper_id)
     results += check_dequeue_result(38, A, dequeue_4)
-    results += check_queues(39, [G, F], [B, G], [])
+    results += testing.check_queues(39, [G, F], [B, G], [])
     results += check_helper_queue(40, [D, E, C, A], helper_id)
     results += check_call_record(41, A, helper_id)
 
     dequeue_5 = dequeue.dequeue(helper_id)
     results += check_dequeue_result(42, G, dequeue_5)
-    results += check_queues(43, [F], [B], [])
+    results += testing.check_queues(43, [F], [B], [])
     results += check_helper_queue(44, [D, E, C, A, G], helper_id)
     results += check_call_record(45, G, helper_id)
 
     dequeue_6 = dequeue.dequeue(helper_id)
     results += check_dequeue_result(46, B, dequeue_6)
-    results += check_queues(47, [F], [], [])
+    results += testing.check_queues(47, [F], [], [])
     results += check_helper_queue(48, [D, E, C, A, G, B], helper_id)
     results += check_call_record(49, B, helper_id)
 

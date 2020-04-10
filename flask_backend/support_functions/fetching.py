@@ -1,37 +1,8 @@
-from flask_backend import bcrypt, BCRYPT_SALT, status, helper_accounts_collection, caller_accounts_collection, \
+from flask_backend import status, helper_accounts_collection, caller_accounts_collection, \
     calls_collection, zip_codes_collection
-import random
 
 from bson import ObjectId
-
-
-def generate_random_key(length=32, numeric=False):
-    possible_characters = []
-
-    # Characters '0' through '9'
-    possible_characters += [chr(x) for x in range(48, 58)]
-
-    if not numeric:
-        # Characters 'A' through 'Z'
-        possible_characters += [chr(x) for x in range(65, 91)]
-
-        # Characters 'a' through 'z'
-        possible_characters += [chr(x) for x in range(97, 123)]
-
-    random_key = ''
-
-    for i in range(length):
-        random_key += random.choice(possible_characters)
-
-    return random_key
-
-
-def hash_password(password):
-    return bcrypt.generate_password_hash(password + BCRYPT_SALT).decode('UTF-8')
-
-
-def check_password(password, hashed_password):
-    return bcrypt.check_password_hash(hashed_password, password + BCRYPT_SALT)
+from flask_backend.support_functions import formatting
 
 
 def get_all_helper_data(email=None, helper_id=None):
@@ -117,9 +88,9 @@ def get_helper_calls_dict(helper_id):
         'call_id': str(call['_id']),
         'status': call['status'],
         'call_type': call['call_type'],
-        'timestamp_received': datetime_to_string(call['timestamp_received']),
-        'timestamp_accepted': datetime_to_string(call['timestamp_accepted']),
-        'timestamp_fulfilled': datetime_to_string(call['timestamp_fulfilled']),
+        'timestamp_received': formatting.datetime_to_string(call['timestamp_received']),
+        'timestamp_accepted': formatting.datetime_to_string(call['timestamp_accepted']),
+        'timestamp_fulfilled': formatting.datetime_to_string(call['timestamp_fulfilled']),
         'comment': call['comment'],
         'phone_number': call['caller'][0]['phone_number']
     } for call in raw_list]
@@ -191,53 +162,3 @@ def get_adjacent_zip_codes(zip_code):
     zip_code_final += zip_codes
 
     return [record[0] for record in zip_code_final] + [zip_code]
-
-
-def datetime_to_string(datetime_object):
-    return datetime_object.strftime("%d.%m.%y, %H:%M")
-
-
-if __name__ == '__main__':
-    # print(get_all_helper_data('makowskimoritz@gmail.com'))
-
-    # Testing: LOOKUP in NoSQL is the equvalent of a JOIN operation in SQL
-
-    accepted_calls = list(
-        calls_collection.aggregate([
-            {
-                '$match': {
-                    'helper_id': ObjectId('5e8a839c2b60889bbec3ef7c'),
-                    'status': 'accepted',
-                }
-            },
-            {
-                '$lookup': {
-                        'from': 'caller_accounts',
-                        'localField': 'caller_id',
-                        'foreignField': '_id',
-                        'as': 'caller'
-                    }
-            }, {
-                '$project': {
-                    '_id': 1,
-                    'timestamp_received': 1,
-                    'timestamp_accepted': 1,
-                    'timestamp_fulfilled': 1,
-                    'comment': 1,
-
-                    'caller': {
-                        'phone_number': 1
-                    }
-                }
-            },
-        ]))
-
-    accepted_calls = [{
-        'call_id': str(call['_id']),
-        'timestamp_received': call['timestamp_received'],
-        'timestamp_accepted': call['timestamp_accepted'],
-        'comment': call['comment'],
-        'phone_number': call['caller'][0]['phone_number']
-    } for call in accepted_calls]
-
-    print(accepted_calls)

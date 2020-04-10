@@ -1,12 +1,10 @@
+
 from flask_backend import helper_accounts_collection, status, helper_api_keys_collection, email_tokens_collection
+from flask_backend.database_scripts.helper_account_scripts import email_verification, verify_register_form, api_authentication
+from flask_backend.support_functions import tokening, fetching
 
-from flask_backend.nosql_scripts.helper_account_scripts import support_functions, email_verification, \
-    verify_register_form, api_authentication
 from pymongo.errors import DuplicateKeyError
-
-
 import datetime
-
 import time
 
 
@@ -24,7 +22,7 @@ def add_helper_account(email, password, zip_code, country='Germany'):
             'phone_number_verified': False,  # Verfication from our side (Call and enter confirmation code)
             'phone_number_confirmed': False,  # Confirmation from the volunteer ('Is this your phone number?')
 
-            'hashed_password': support_functions.hash_password(password),
+            'hashed_password': tokening.hash_password(password),
             'zip_code': zip_code,
             'country': country,
 
@@ -95,11 +93,11 @@ def modify_helper_account(email, **kwargs):
         new_email = email
 
     if 'old_password' in kwargs and 'new_password' in kwargs:
-        if support_functions.check_password(kwargs['old_password'], helper_account['hashed_password']):
+        if tokening.check_password(kwargs['old_password'], helper_account['hashed_password']):
             if not verify_register_form.verify_password_format(kwargs['new_password']):
                 return status('password format invalid')
             else:
-                new_password = support_functions.hash_password(kwargs['new_password'])
+                new_password = tokening.hash_password(kwargs['new_password'])
         else:
             return status('old password invalid')
     else:
@@ -149,9 +147,9 @@ def modify_helper_account(email, **kwargs):
             email_verification.trigger_email_verification(helper_account['_id'], new_email)
 
         # api_key remains the same
-        response_dict = support_functions.get_all_helper_data(new_email)
+        response_dict = fetching.get_all_helper_data(new_email)
     else:
-        response_dict = support_functions.get_all_helper_data(email)
+        response_dict = fetching.get_all_helper_data(email)
 
     return response_dict
 

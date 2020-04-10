@@ -1,5 +1,4 @@
 
-
 def get_params_dict(request, print_out=False):
 
     try:

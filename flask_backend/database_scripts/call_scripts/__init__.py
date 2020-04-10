@@ -1,13 +1,14 @@
 
-from flask_backend import status, caller_accounts_collection, calls_collection, helper_accounts_collection, helper_behavior_collection
-from datetime import datetime
-
-from flask_backend.nosql_scripts.call_scripts import enqueue, dequeue
-from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_all_helper_data
+from flask_backend import status, caller_accounts_collection, calls_collection, helper_behavior_collection
+from flask_backend.database_scripts.call_scripts import enqueue, dequeue
+from flask_backend.support_functions import fetching
 
 from bson.objectid import ObjectId
-# These scripts will just be used internally!
 from pymongo import UpdateOne
+from datetime import datetime
+
+
+# These scripts will just be used internally!
 
 
 def add_caller(phone_number):
@@ -80,7 +81,7 @@ def accept_call(helper_id, zip_code,
     if dequeue_result['status'] != 'ok':
         return dequeue_result
     else:
-        return get_all_helper_data(helper_id=helper_id)
+        return fetching.get_all_helper_data(helper_id=helper_id)
 
 
 def fulfill_call(call_id, helper_id):

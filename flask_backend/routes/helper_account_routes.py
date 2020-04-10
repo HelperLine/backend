@@ -1,19 +1,16 @@
-from flask_backend import app, helper_accounts_collection, status, api
-from flask import redirect, request
 
-from flask_backend.routes import support_functions
-from flask_backend.nosql_scripts.helper_account_scripts import api_authentication, email_verification, phone_verification
+from flask_backend import app, helper_accounts_collection, status, api
+from flask_backend.database_scripts.helper_account_scripts import api_authentication, email_verification, phone_verification
+from flask_backend.support_functions import routing
 
 from twilio.twiml.voice_response import VoiceResponse, Gather
-
-
+from flask import redirect, request
 import time
-
 
 
 @app.route('/backend/login/helper', methods=['POST'])
 def backend_helper_login():
-    params_dict = support_functions.get_params_dict(request)
+    params_dict = routing.get_params_dict(request)
 
     # Artificial delay to further prevent brute forcing
     time.sleep(0.05)
@@ -41,7 +38,7 @@ def backend_helper_login():
 
 @app.route('/backend/logout/helper', methods=['POST'])
 def backend_helper_logout():
-    params_dict = support_functions.get_params_dict(request)
+    params_dict = routing.get_params_dict(request)
 
     if 'email' not in params_dict or 'api_key' not in params_dict:
         return status('missing parameter email/api_key')
@@ -71,7 +68,7 @@ def backend_email_verify(verification_token):
 
 @app.route('/backend/email/resend', methods=['POST'])
 def backend_resend_email():
-    params_dict = support_functions.get_params_dict(request)
+    params_dict = routing.get_params_dict(request)
 
     if 'email' not in params_dict or 'api_key' not in params_dict:
         return status('missing parameter email/api_key')
@@ -95,7 +92,7 @@ def backend_resend_email():
 
 @app.route('/backend/phone/trigger', methods=['POST'])
 def backend_trigger_phone_verification():
-    params_dict = support_functions.get_params_dict(request)
+    params_dict = routing.get_params_dict(request)
 
     if 'email' not in params_dict or 'api_key' not in params_dict:
         return status('missing parameter email/api_key')
@@ -118,7 +115,7 @@ def hotline_phone_verification():
     if 'Digits' in request.values:
         token = request.values['Digits']
 
-        phone_number = support_functions.get_params_dict(request)['Caller']
+        phone_number = routing.get_params_dict(request)['Caller']
         verification_result = phone_verification.verify_phone_number(token=token, phone_number=phone_number)
 
         if verification_result['status'] == 'ok':
@@ -136,7 +133,7 @@ def hotline_phone_verification():
 
 @app.route('/backend/phone/confirm', methods=['POST'])
 def backend_confirm_phone_verification():
-    params_dict = support_functions.get_params_dict(request)
+    params_dict = routing.get_params_dict(request)
 
     if 'email' not in params_dict or 'api_key' not in params_dict:
         return status('missing parameter email/api_key')

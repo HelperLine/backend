@@ -1,9 +1,9 @@
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import *
 
 from flask_backend import SENDGRID_API_KEY, BACKEND_URL, status, email_tokens_collection, helper_accounts_collection
-from flask_backend.nosql_scripts.helper_account_scripts import support_functions
+from flask_backend.support_functions import tokening
 
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import *
 from pymongo import DeleteMany, InsertOne
 
 
@@ -33,7 +33,7 @@ def trigger_email_verification(helper_id, email):
     # this function can be used for the initial send as well as resending
 
     # Generate new token
-    verification_token = support_functions.generate_random_key(length=64)
+    verification_token = tokening.generate_random_key(length=64)
 
     # Create new token record
     record = {'helper_id': helper_id, 'token': verification_token}

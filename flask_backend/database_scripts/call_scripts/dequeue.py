@@ -1,11 +1,20 @@
 
 from flask_backend import status, call_queue, helper_accounts_collection, helper_behavior_collection, calls_collection
+from flask_backend.support_functions import fetching
 
-from flask_backend.nosql_scripts.call_scripts import support_functions
-from flask_backend.nosql_scripts.helper_account_scripts.support_functions import get_adjacent_zip_codes
-
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
+
+
+
+# constants
+local_timeout_seconds = 30
+global_timeout_seconds = 60
+
+local_timeout_timedelta = timedelta(seconds=local_timeout_seconds)
+global_timeout_timedelta = timedelta(seconds=global_timeout_seconds)
+
+
 
 # triggered when user clicks 'accept call'
 # filter options passed as arguments!
@@ -39,10 +48,7 @@ def dequeue(helper_id, zip_code=None,
     language_list += ['german'] if accept_german else []
     language_list += ['english'] if accept_english else []
 
-    zip_codes_list = get_adjacent_zip_codes(zip_code) if (zip_code != '') else []
-
-    print(f'zip_code: {zip_code}')
-    print(f'zip_codes: {zip_codes_list}')
+    zip_codes_list = fetching.get_adjacent_zip_codes(zip_code) if (zip_code != '') else []
 
     projection_dict = {
         '_id': 0,
@@ -81,7 +87,7 @@ def dequeue(helper_id, zip_code=None,
     else:
         # 1. Urgent Queue
         call = call_queue.find_one_and_delete(
-            {'timestamp_received': {'$lt': current_timestamp - support_functions.global_timeout_timedelta}},
+            {'timestamp_received': {'$lt': current_timestamp - global_timeout_timedelta}},
             projection_dict,
             sort=[('timestamp_received', 1)],
         )
@@ -106,7 +112,7 @@ def dequeue(helper_id, zip_code=None,
             # are not in the global queue yet get assigned
             call = call_queue.find_one_and_delete(
                 {'$or': [
-                    {'call_type': {"$elemMatch": {"$eq": 'local'}}, 'timestamp_received': {'$lt': current_timestamp - support_functions.local_timeout_timedelta}},
+                    {'call_type': {"$elemMatch": {"$eq": 'local'}}, 'timestamp_received': {'$lt': current_timestamp - local_timeout_timedelta}},
                     {'call_type': {"$elemMatch": {"$eq": 'global'}}}
                 ]},
                 projection_dict,
