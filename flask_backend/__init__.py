@@ -24,10 +24,9 @@ if os.getenv("ENVIRONMENT") != "production":
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
 
 client = datastore.Client()
-for name in ["MONGODB_WRITE_CONNECTION_STRING", "SECRET_KEY", "BCRYPT_SALT",
-             "GCP_API_KEY", "SENDGRID_API_KEY", "BACKEND_URL", "FRONTEND_URL"]:
-    raw_query_result = client.query(kind='Secrets').add_filter('name', '=', name).fetch()
-    os.environ[name] = list(raw_query_result)[0]["value"]
+raw_query_result = list(client.query(kind='Secrets').fetch())
+for entity in raw_query_result:
+    os.environ[entity["name"]] = entity["value"]
 
 MONGODB_WRITE_CONNECTION_STRING = os.getenv('MONGODB_WRITE_CONNECTION_STRING')
 SECRET_KEY = os.getenv('SECRET_KEY')
