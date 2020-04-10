@@ -23,8 +23,6 @@ __pycache__/
 
 /Pipfile
 /Pipfile.lock
-/Procfile
-/react_frontend
 /run.py
 /docs
 /venv

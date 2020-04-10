@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect
+from flask import Flask
 
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
@@ -12,6 +12,7 @@ from pymongo import MongoClient
 
 # Set correct SSL certificate
 os.environ['SSL_CERT_FILE'] = certifi.where()
+
 
 
 
@@ -32,6 +33,8 @@ GCP_API_KEY = os.getenv('GCP_API_KEY')
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 BACKEND_URL = os.getenv('BACKEND_URL')
 FRONTEND_URL = os.getenv('FRONTEND_URL')
+
+
 
 
 # Connect to database and collections
@@ -59,18 +62,19 @@ queue_database = client.get_database('queue_database')
 call_queue = queue_database['call_queue']
 
 
+
+
 app = Flask(__name__)
 
 # Cookies (e.g. user/admin login) are stored for 7 days
 app.config['REMEMBER_COOKIE_DURATION'] = 60 * 60 * 24 * 7
 app.config['SECRET_KEY'] = SECRET_KEY
 
-
-
-
 cors = CORS(app)
 bcrypt = Bcrypt(app)
 api = Api(app)
+
+
 
 
 def status(text, **kwargs):
@@ -79,17 +83,7 @@ def status(text, **kwargs):
     return status_dict
 
 
-if os.getenv("ENVIRONMENT") == "production":
-    @app.before_request
-    def before_request():
-        if request.url.startswith('http://'):
-            url = request.url.replace('http://', 'https://', 1)
-            code = 301
-            return redirect(url, code=code)
-
-
-from flask_backend.backend_routes import helper_routes, call_routes, hotline_routes
-
+from flask_backend.backend_routes import default_routes, helper_routes, call_routes, hotline_routes
 
 if __name__ == '__main__':
     print(status('ok', api_key='1234567'))
