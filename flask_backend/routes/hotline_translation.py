@@ -82,8 +82,13 @@ hotline_translation = {
     },
 
 
-    'error_message': {
+    'error_message_general': {
         'de': 'Leider ist bei dieser Anfrage etwas schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
         'en-gb': 'An error has occured in this request. Please try again later.',
+    },
+
+    'error_message_api_version': {
+        'de': 'Ungültige API Version.',
+        'en-gb': 'Invalid API version.',
     },
 }

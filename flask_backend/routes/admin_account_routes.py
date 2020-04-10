@@ -7,40 +7,50 @@ from flask import request
 import time
 
 
-@app.route('/backend/login/admin', methods=['POST'])
-def backend_admin_login():
-    params_dict = routing.get_params_dict(request)
+@app.route('/backend/<api_version>/login/admin', methods=['POST'])
+def backend_admin_login(api_version):
 
-    # Artificial delay to further prevent brute forcing
-    time.sleep(0.05)
+    if api_version == "v1":
+        params_dict = routing.get_params_dict(request)
 
-    email = params_dict['admin_email']
-    password = params_dict['admin_password']
-    api_key = params_dict['admin_api_key']
+        # Artificial delay to further prevent brute forcing
+        time.sleep(0.05)
 
-    # Initial login
-    if email is not None and password is not None:
-        login_result_dict = api_authentication.admin_login_password(email, password)
+        email = params_dict['admin_email']
+        password = params_dict['admin_password']
+        api_key = params_dict['admin_api_key']
 
-    # Automatic re-login from webapp
-    elif email is not None and api_key is not None:
-        # TODO: Generate new API Key for every login request in production!
-        login_result_dict = api_authentication.admin_login_api_key(email, api_key)
+        # Initial login
+        if email is not None and password is not None:
+            login_result_dict = api_authentication.admin_login_password(email, password)
+
+        # Automatic re-login from webapp
+        elif email is not None and api_key is not None:
+            # TODO: Generate new API Key for every login request in production!
+            login_result_dict = api_authentication.admin_login_api_key(email, api_key)
+
+        else:
+            login_result_dict = status('missing parameter admin_email/admin_password/admin_api_key')
+
+        return login_result_dict
 
     else:
-        login_result_dict = status('missing parameter admin_email/admin_password/admin_api_key')
-
-    return login_result_dict, 200
+        return status("api_version invalid")
 
 
 
 
-@app.route('/backend/logout/admin', methods=['POST'])
-def backend_admin_logout():
-    params_dict = routing.get_params_dict(request)
+@app.route('/backend/<api_version>/logout/admin', methods=['POST'])
+def backend_admin_logout(api_version):
 
-    if 'admin_email' not in params_dict or 'admin_api_key' not in params_dict:
-        return status('missing parameter admin_email/admin_api_key')
+    if api_version == "v1":
+        params_dict = routing.get_params_dict(request)
 
-    api_authentication.admin_logout(params_dict['admin_email'], params_dict['admin_api_key'])
-    return status('ok')
+        if 'admin_email' not in params_dict or 'admin_api_key' not in params_dict:
+            return status('missing parameter admin_email/admin_api_key')
+
+        api_authentication.admin_logout(params_dict['admin_email'], params_dict['admin_api_key'])
+        return status('ok')
+
+    else:
+        return status("api_version invalid")
