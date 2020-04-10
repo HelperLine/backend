@@ -1,2 +1,18 @@
+
 runtime: python37
+
+
+# If `entrypoint` is not defined in app.yaml, App Engine will look for an app
+# called `app` in `main.py`.
 entrypoint: gunicorn flask_backend:app
+
+
+# I don't know why "NODE_ENV" is not set in production ...
+env_variables:
+  ENVIRONMENT: "production"
+
+
+instance_class: B1
+basic_scaling:
+  max_instances: 5
+  idle_timeout: 3m

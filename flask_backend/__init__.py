@@ -1,29 +1,10 @@
 from flask import Flask, request, redirect
-import os
 
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_restful import Api
 
-try:
-    from flask_backend.secrets import MONGODB_WRITE_CONNECTION_STRING
-    from flask_backend.secrets import SECRET_KEY, BCRYPT_SALT, GCP_API_KEY, SENDGRID_API_KEY
-    from flask_backend.secrets import BACKEND_URL, FRONTEND_URL
-except Exception:
-
-    # The secrets file will not be included in any repository and will
-    # never leave this computer In production these values will be set
-    # by environment variables
-
-    MONGODB_WRITE_CONNECTION_STRING = os.getenv('MONGODB_WRITE_CONNECTION_STRING')
-    SECRET_KEY = os.getenv('SECRET_KEY')
-    BCRYPT_SALT = os.getenv('BCRYPT_SALT')
-    GCP_API_KEY = os.getenv('GCP_API_KEY')
-    SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
-
-    BACKEND_URL = os.getenv('BACKEND_URL')
-    FRONTEND_URL = os.getenv('FRONTEND_URL')
-
+from google.cloud import datastore
 
 import os
 import certifi
@@ -31,6 +12,26 @@ from pymongo import MongoClient
 
 # Set correct SSL certificate
 os.environ['SSL_CERT_FILE'] = certifi.where()
+
+
+
+if os.getenv("ENVIRONMENT") != "production":
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
+
+client = datastore.Client()
+
+for name in ["MONGODB_WRITE_CONNECTION_STRING", "SECRET_KEY", "BCRYPT_SALT",
+             "GCP_API_KEY", "SENDGRID_API_KEY", "BACKEND_URL", "FRONTEND_URL"]:
+    raw_query_result = client.query(kind='Secrets').add_filter('name', '=', name).fetch()
+    os.environ[name] = list(raw_query_result)[0]["value"]
+
+MONGODB_WRITE_CONNECTION_STRING = os.getenv('MONGODB_WRITE_CONNECTION_STRING')
+SECRET_KEY = os.getenv('SECRET_KEY')
+BCRYPT_SALT = os.getenv('BCRYPT_SALT')
+GCP_API_KEY = os.getenv('GCP_API_KEY')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+BACKEND_URL = os.getenv('BACKEND_URL')
+FRONTEND_URL = os.getenv('FRONTEND_URL')
 
 
 # Connect to database and collections
@@ -78,14 +79,13 @@ def status(text, **kwargs):
     return status_dict
 
 
-if os.getenv('MONGODB_WRITE_CONNECTION_STRING') is not None:
+if os.getenv("ENVIRONMENT") == "production":
     @app.before_request
     def before_request():
         if request.url.startswith('http://'):
             url = request.url.replace('http://', 'https://', 1)
             code = 301
             return redirect(url, code=code)
-
 
 
 from flask_backend.backend_routes import helper_routes, call_routes, hotline_routes

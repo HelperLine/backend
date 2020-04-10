@@ -18,6 +18,7 @@ requests = "*"
 twilio = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
+google-cloud-datastore = "*"
 
 [requires]
 python_version = "3.8"
