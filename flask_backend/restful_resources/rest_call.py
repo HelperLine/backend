@@ -30,7 +30,7 @@ class RESTCall(Resource):
 
         helper = helper_accounts_collection.find_one({"email": params_dict["email"]})
         if helper is None:
-            return formatting.status("backend error - helper record not found after successful authentication")
+            return formatting.status("server error: helper record not found after successful authentication")
 
         if 'call_id' not in params_dict:
             return formatting.status('call_id missing')

@@ -34,11 +34,13 @@ def route_helper_account_login(api_version):
             login_result_dict = api_authentication.helper_login_api_key(email, api_key)
 
         else:
+            # Programming Error
             login_result_dict = formatting.status('email/password/api_key missing')
 
         return login_result_dict
 
     else:
+        # Programming Error
         return formatting.status("api_version invalid")
 
 
@@ -55,6 +57,7 @@ def route_helper_account_logout(api_version):
         return api_authentication.helper_logout(params_dict['email'], params_dict['api_key'])
 
     else:
+        # Programming Error
         return formatting.status("api_version invalid")
 
 
@@ -66,6 +69,7 @@ def route_helper_email_verify(api_version, verification_token):
         return redirect(FRONTEND_URL + 'calls')
 
     else:
+        # Programming Error
         return formatting.status("api_version invalid")
 
 
@@ -82,6 +86,7 @@ def route_helper_email_resend(api_version):
         return email_verification.trigger_email_verification(params_dict['email'])
 
     else:
+        # Programming Error
         return formatting.status("api_version invalid")
 
 
@@ -98,15 +103,16 @@ def route_helper_phone_trigger(api_version):
         return phone_verification.trigger_phone_verification(params_dict['email'])
 
     else:
+        # Programming Error
         return formatting.status("api_version invalid")
 
 
 @app.route('/backend/<api_version>/phone/verify', methods=['GET', 'POST'])
 def route_helper_phone_verify(api_version):
 
-    if api_version == "v1":
-        resp = VoiceResponse()
+    resp = VoiceResponse()
 
+    if api_version == "v1":
         if 'Digits' in request.values:
             token = request.values['Digits']
 
@@ -123,10 +129,11 @@ def route_helper_phone_verify(api_version):
 
         resp.redirect('/backend/v1/phone/verify')
 
-        return str(resp)
-
     else:
-        return formatting.status("api_version invalid")
+        # Programming Error
+        resp.redirect('/hotline/error/api_version')
+
+    return str(resp)
 
 
 @app.route('/backend/<api_version>/phone/confirm', methods=['POST'])
@@ -142,4 +149,5 @@ def route_helper_phone_confirm(api_version):
         return phone_verification.confirm_phone_verification(params_dict['email'])
 
     else:
+        # Programming Error
         return formatting.status("api_version invalid")

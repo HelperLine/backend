@@ -11,7 +11,7 @@ def set_online(params_dict):
 
     if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
             'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
-        return formatting.status('filters missing')
+        return formatting.status('filter parameters missing')
 
     helper = helper_accounts_collection.find_one({'email': params_dict['email']})
 

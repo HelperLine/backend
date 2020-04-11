@@ -109,13 +109,13 @@ def modify_helper_account(params_dict):
             else:
                 new_password = tokening.hash_password(params_dict['new_password'])
         else:
-            return formatting.status('old password invalid')
+            return formatting.status('old_password invalid')
     else:
         new_password = helper_account['hashed_password']
 
     if 'zip_code' in params_dict:
         if not verifying.verify_zip_code_format(params_dict['zip_code']):
-            return formatting.status('zip code format invalid')
+            return formatting.status('zip_code format invalid')
         else:
             new_zip_code = params_dict['zip_code']
     else:

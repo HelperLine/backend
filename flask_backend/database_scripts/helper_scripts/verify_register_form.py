@@ -12,7 +12,7 @@ def verify_register_form(email, password, zip_code, country, new_account=True):
         return formatting.status('password format invalid')
 
     if not verifying.verify_zip_code_format(zip_code):
-        return formatting.status('zip code format invalid')
+        return formatting.status('zip_code format invalid')
 
     if not verifying.verify_country_format(country):
         return formatting.status('country invalid')
