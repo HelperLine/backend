@@ -48,7 +48,7 @@ def route_helper_account_logout(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
@@ -75,7 +75,7 @@ def route_helper_email_resend(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
@@ -91,7 +91,7 @@ def route_helper_phone_trigger(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
@@ -135,7 +135,7 @@ def route_helper_phone_confirm(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 

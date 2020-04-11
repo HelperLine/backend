@@ -17,7 +17,7 @@ def route_call_accept(api_version):
         params_dict = routing.get_params_dict(request, print_out=True)
 
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
@@ -33,7 +33,7 @@ def route_call_set_online(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request, print_out=True)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
@@ -49,7 +49,7 @@ def route_call_set_offline(api_version):
     if api_version == "v1":
         params_dict = routing.get_params_dict(request, print_out=True)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 

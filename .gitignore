@@ -4,7 +4,7 @@
 /flask_backend/secrets.py
 /react_frontend
 /service-account.json
-
+/flask_backend/database_scripts/seed_scripts/service-account.json
 
 
 

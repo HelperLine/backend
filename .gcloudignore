@@ -28,6 +28,7 @@ __pycache__/
 /venv
 /README.md
 /service-account.json
+/flask_backend/database_scripts/seed_scripts/service-account.json
 
 
 

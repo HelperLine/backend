@@ -15,7 +15,7 @@ class RESTHelper(Resource):
         # Get all infos for a specific account
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
@@ -31,7 +31,7 @@ class RESTHelper(Resource):
         # Modify an existing account
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 

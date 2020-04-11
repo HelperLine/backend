@@ -12,10 +12,11 @@ env_variables:
   ENVIRONMENT: "production"
 
 
-instance_class: B1
-basic_scaling:
+instance_class: F1
+automatic_scaling:
+  min_instances: 0
   max_instances: 5
-  idle_timeout: 3m
+
 
 handlers:
 - url: /robots.txt
