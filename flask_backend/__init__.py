@@ -77,7 +77,7 @@ bcrypt = Bcrypt(app)
 api = Api(app)
 
 
-from flask_backend.backend_routes import default_routes, helper_routes, call_routes, hotline_routes
+from flask_backend.backend_routes import default_routes, helper_routes, call_routes, hotline_routes, verification_routes
 
 if __name__ == '__main__':
     print(status('ok', api_key='1234567'))

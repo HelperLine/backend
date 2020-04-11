@@ -13,7 +13,14 @@ def send_verification_mail(email, verification_token):
         from_email='verify@hilfe-am-ohr.de',
         to_emails=email,
         subject='Verify your account!',
-        html_content=f'Please verify: <a href=\'{BACKEND_URL}backend/v1/email/verify/{verification_token}\'>Verification Link</a>')
+        html_content=f'<h2>Welcome to HelperLine!</h2>' +
+                     f'<p>Please verify this email address: <a href=\'{BACKEND_URL}verification/v1' +
+                     f'/email/{verification_token}\'>Verification Link</a></p>' +
+                     f'<br/>' +
+                     f'<p>If you have not signed up for our service, you can just ignore this email</p>' +
+                     f'<br/>' +
+                     f'<p>Best,<br/>HelperLine Team</p>'
+    )
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)

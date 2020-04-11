@@ -1,10 +1,9 @@
 
-from flask_backend import app, api, FRONTEND_URL
+from flask_backend import app, api
 from flask_backend.database_scripts.helper_scripts import api_authentication, email_verification, phone_verification
 from flask_backend.support_functions import routing, tokening, formatting
 
-from twilio.twiml.voice_response import VoiceResponse, Gather
-from flask import redirect, request
+from flask import request
 import time
 
 
@@ -61,18 +60,6 @@ def route_helper_account_logout(api_version):
         return formatting.status("api_version invalid")
 
 
-@app.route('/backend/<api_version>/email/verify/<verification_token>')
-def route_helper_email_verify(api_version, verification_token):
-
-    if api_version == "v1":
-        email_verification.verify_email(verification_token)
-        return redirect(FRONTEND_URL + 'calls')
-
-    else:
-        # Programming Error
-        return formatting.status("api_version invalid")
-
-
 @app.route('/backend/<api_version>/email/resend', methods=['POST'])
 def route_helper_email_resend(api_version):
 
@@ -105,35 +92,6 @@ def route_helper_phone_trigger(api_version):
     else:
         # Programming Error
         return formatting.status("api_version invalid")
-
-
-@app.route('/backend/<api_version>/phone/verify', methods=['GET', 'POST'])
-def route_helper_phone_verify(api_version):
-
-    resp = VoiceResponse()
-
-    if api_version == "v1":
-        if 'Digits' in request.values:
-            token = request.values['Digits']
-
-            phone_number = routing.get_params_dict(request)['Caller']
-            verification_result = phone_verification.verify_phone_number(token=token, phone_number=phone_number)
-
-            if verification_result['status'] == 'ok':
-                resp.say('Your phone number has been confirmed successfully. Goodbye', voice='woman', language='en-gb')
-                return str(resp)
-
-        gather = Gather(num_digits=8, finish_on_key='#')
-        gather.say('Please enter your confirmation code and confirm with the hash-key.', voice='woman', language='en-gb')
-        resp.append(gather)
-
-        resp.redirect('/backend/v1/phone/verify')
-
-    else:
-        # Programming Error
-        resp.redirect('/hotline/error/api_version')
-
-    return str(resp)
 
 
 @app.route('/backend/<api_version>/phone/confirm', methods=['POST'])

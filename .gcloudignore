@@ -29,6 +29,7 @@ __pycache__/
 /README.md
 /service-account.json
 /flask_backend/database_scripts/seed_scripts/service-account.json
+/flask_backend/secrets.py
 
 
 

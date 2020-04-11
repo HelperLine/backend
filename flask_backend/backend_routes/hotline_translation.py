@@ -91,4 +91,18 @@ hotline_translation = {
         'de': 'Ungültige API Version.',
         'en-gb': 'Invalid API version.',
     },
+
+
+    'verification_enter_code': {
+        'de': 'Bitte geben sie Ihren Sicherheitscode ein und bestätigen sie mit der Raute Taste.',
+        'en-gb': 'Please enter your security code and confirm with the hash-key.',
+    },
+    'verification_success': {
+        'de': 'Ihre Telefonnummer wurde erfolgreich bestätigt. Auf Wiederhören.',
+        'en-gb': 'Your phone number has been confirm successfully. Goodbye.',
+    },
+    'verification_fail': {
+        'de': 'Dieser Code ist leider ungültig. Bitte achten Sie auch darauf, dass dieser nicht älter als 3 Minuten ist.',
+        'en-gb': 'This code is not valid. Please make sure, that your code is not older than 3 minutes.',
+    }
 }
