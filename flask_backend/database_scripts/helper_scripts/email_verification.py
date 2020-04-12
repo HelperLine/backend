@@ -10,16 +10,14 @@ from bson import ObjectId
 
 def send_verification_mail(email, verification_token):
     message = Mail(
-        from_email='verify@hilfe-am-ohr.de',
+        from_email='verify@helperline.io',
         to_emails=email,
         subject='Verify your account!',
         html_content=f'<h2>Welcome to HelperLine!</h2>' +
                      f'<p>Please verify this email address: <a href=\'{BACKEND_URL}verification/v1' +
                      f'/email/{verification_token}\'>Verification Link</a></p>' +
-                     f'<br/>' +
                      f'<p>If you have not signed up for our service, you can just ignore this email</p>' +
-                     f'<br/>' +
-                     f'<p>Best,<br/>HelperLine Team</p>'
+                     f'<p>Best,<br/>The HelperLine Team</p>'
     )
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)

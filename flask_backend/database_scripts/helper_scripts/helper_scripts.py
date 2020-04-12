@@ -33,7 +33,7 @@ def add_helper_account(params_dict):
             'zip_code': zip_code,
             'country': country,
 
-            'register_date': datetime.datetime.now().strftime('%d.%m.%y'),
+            'register_date': datetime.datetime.utcnow().strftime('%d.%m.%y'),
 
             'filter_type_local': False,
             'filter_type_global': False,
@@ -41,7 +41,7 @@ def add_helper_account(params_dict):
             'filter_language_english': False,
 
             'online': False,
-            'last_switched_online': datetime.datetime.now(),
+            'last_switched_online': datetime.datetime.utcnow(),
             'online_schedule': []
         }
 

@@ -26,6 +26,8 @@ def add_caller(phone_number):
 
 
 def add_call(caller_id, language, call_type='', zip_code=''):
+
+    current_timestamp = datetime.utcnow()
     # local is boolean
     new_call = {
         'caller_id': ObjectId(caller_id),
@@ -41,9 +43,9 @@ def add_call(caller_id, language, call_type='', zip_code=''):
         'status': 'pending',
         'comment': '',
 
-        'timestamp_received': datetime.now(),
-        'timestamp_accepted': datetime.now(),
-        'timestamp_fulfilled': datetime.now(),
+        'timestamp_received': current_timestamp,
+        'timestamp_accepted': current_timestamp,
+        'timestamp_fulfilled': current_timestamp,
     }
     call_id = calls_collection.insert_one(new_call).inserted_id
 
@@ -96,7 +98,7 @@ def accept_call(params_dict):
 def fulfill_call(call_id, helper_id):
     # call_id and agent_id are assumed to be valid
 
-    current_timestamp = datetime.now()
+    current_timestamp = datetime.utcnow()
 
     # Change call formatting.status
     call_update = {
@@ -144,7 +146,7 @@ def reject_call(call_id, helper_id):
     new_behavior_log = {
         'helper_id': ObjectId(helper_id),
         'call_id': ObjectId(call_id),
-        'timestamp': datetime.now(),
+        'timestamp': datetime.utcnow(),
         'action': 'rejected',
     }
     helper_behavior_collection.insert_one(new_behavior_log)

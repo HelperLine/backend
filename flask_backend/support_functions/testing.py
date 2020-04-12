@@ -35,7 +35,7 @@ def lists_match(list_1, list_2):
 
 
 def check_queues(test_no, desired_local_list, desired_global_list, desired_urgent_list):
-    current_timestamp = datetime.now()
+    current_timestamp = datetime.utcnow()
 
     local_calls = list(call_queue.find(
         {'local': True},

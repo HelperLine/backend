@@ -16,7 +16,7 @@ def verify_phone_number(token='', phone_number=''):
     record = phone_tokens_collection.find_one(
         {
             'token': token,
-            'timestamp_issued': {'$gt': datetime.now() - timedelta(minutes=3)},
+            'timestamp_issued': {'$gt': datetime.utcnow() - timedelta(minutes=3)},
         })
 
 
@@ -49,7 +49,7 @@ def trigger_phone_verification(email):
     record = {
         'helper_id': helper_id,
         'token': token,
-        'timestamp_issued': datetime.now(),
+        'timestamp_issued': datetime.utcnow(),
     }
     operations = [
         DeleteMany({'helper_id': helper_id}),

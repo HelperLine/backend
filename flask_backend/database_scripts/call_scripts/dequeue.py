@@ -8,8 +8,8 @@ from pymongo import UpdateOne
 
 
 # constants
-local_timeout_seconds = 30
-global_timeout_seconds = 60
+local_timeout_seconds = 15 * 60
+global_timeout_seconds = 45 * 60
 
 local_timeout_timedelta = timedelta(seconds=local_timeout_seconds)
 global_timeout_timedelta = timedelta(seconds=global_timeout_seconds)
@@ -24,7 +24,7 @@ def dequeue(helper_id, zip_code=None,
             only_local_calls=None, only_global_calls=None,
             accept_german=None, accept_english=None):
 
-    current_timestamp = datetime.now()
+    current_timestamp = datetime.utcnow()
 
     if only_local_calls and only_global_calls:
         return formatting.status('invalid function call - only_local = only_global = True')
@@ -50,10 +50,7 @@ def dequeue(helper_id, zip_code=None,
 
     zip_codes_list = fetching.get_adjacent_zip_codes(zip_code) if (zip_code != '') else []
 
-    projection_dict = {
-        '_id': 0,
-        'call_id': 1
-    }
+    projection_dict = {}
 
 
 
@@ -135,6 +132,8 @@ def dequeue(helper_id, zip_code=None,
             'timestamp_accepted': current_timestamp
         }
     }
+
+    print(f"call = {call}")
 
     # accepted-match if local call was accepted from local queue (successful) or global call
     # accepted-mismatch if local call was matched with non-local helper
