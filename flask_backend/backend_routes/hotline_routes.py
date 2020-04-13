@@ -236,7 +236,7 @@ def route_hotline_after_forward(api_version, language, call_id, helper_id):
             resp.say(hotline_translation['after_forward_successful'][language], voice='woman', language=language)
         else:
             forwarding.flag_helper(call_id, helper_id, dial_call_status)
-            enqueue.enqueue(call_id)
+            call_scripts.reject_call(call_id, helper_id)
             resp.say(hotline_translation['after_forward_not_successful'][language], voice='woman', language=language)
 
     else:
