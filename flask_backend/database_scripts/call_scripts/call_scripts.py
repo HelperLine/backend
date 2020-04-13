@@ -153,7 +153,7 @@ def reject_call(call_id, helper_id):
 
 
 def comment_call(call_id, comment):
-    calls_collection({'_id': ObjectId(call_id)}, {'$set': {'comment': comment}})
+    calls_collection.update_one({'_id': ObjectId(call_id)}, {'$set': {'comment': comment}})
 
 
 if __name__ == '__main__':

@@ -14,13 +14,14 @@ class RESTCall(Resource):
     # leak to non-authorized entities
 
     def put(self):
+
         # Modify an existing account
-        params_dict = routing.get_params_dict(request)
+        params_dict = routing.get_params_dict(request, print_out=True)
 
 
         # Step 1) Authenticate
 
-        authentication_result = tokening.check_admin_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
 
