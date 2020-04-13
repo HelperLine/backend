@@ -4,7 +4,7 @@ from flask_backend.support_functions import fetching, formatting
 
 from pymongo import UpdateOne
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def set_online(params_dict):
@@ -28,7 +28,7 @@ def set_online(params_dict):
         'filter_language_english': params_dict["filter_language_english"],
 
         'online': True,
-        'last_switched_online': datetime.utcnow(),
+        'last_switched_online': datetime.now(timezone(timedelta(hours=2))),
     }
     helper_accounts_collection.update_one({'email': params_dict['email']}, {"$set": helper_update})
 
@@ -78,7 +78,7 @@ def find_forward_helper(call_id):
             "$and":
                 [{
                     "online": True,
-                    "last_switched_online": {"$gt": datetime.utcnow() - timedelta(minutes=120)},
+                    "last_switched_online": {"$gt": datetime.now(timezone(timedelta(hours=2))) - timedelta(minutes=120)},
 
                     "zip_code": {"$in": fetching.get_adjacent_zip_codes(call['zip_code'])}
                 }, {
@@ -97,7 +97,7 @@ def find_forward_helper(call_id):
             "$and":
                 [{
                     "online": True,
-                    "last_switched_online": {"$gt": datetime.utcnow() - timedelta(minutes=120)},
+                    "last_switched_online": {"$gt": datetime.now(timezone(timedelta(hours=2))) - timedelta(minutes=120)},
                 }, {
                     "$or": [
                         {"filter_type_global": True},
@@ -140,7 +140,7 @@ def find_forward_helper(call_id):
         "$set": {
             "status": "accepted",
             "helper_id": ObjectId(helper["_id"]),
-            "timestamp_accepted": datetime.utcnow(),
+            "timestamp_accepted": datetime.now(timezone(timedelta(hours=2))),
         }
     }
     call_update_dict_2 = {
@@ -162,7 +162,7 @@ def find_forward_helper(call_id):
     new_behavior_log = {
         'helper_id': ObjectId(helper["_id"]),
         'call_id': ObjectId(call_id),
-        'timestamp': datetime.utcnow(),
+        'timestamp': datetime.now(timezone(timedelta(hours=2))),
         'action': 'forwarded',
     }
     helper_behavior_collection.insert_one(new_behavior_log)
@@ -175,7 +175,7 @@ def flag_helper(call_id, helper_id, dial_call_status):
     new_behavior_log = {
         'helper_id': ObjectId(helper_id),
         'call_id': ObjectId(call_id),
-        'timestamp': datetime.utcnow(),
+        'timestamp': datetime.now(timezone(timedelta(hours=2))),
         'action': f'call not successful - DialCallStatus = {dial_call_status}',
     }
     helper_behavior_collection.insert_one(new_behavior_log)

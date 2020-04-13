@@ -2,10 +2,9 @@
 from flask_backend import call_queue, helper_accounts_collection, helper_behavior_collection, calls_collection
 from flask_backend.support_functions import fetching, formatting
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from pymongo import UpdateOne
-
 
 # constants
 local_timeout_seconds = 15 * 60
@@ -24,7 +23,7 @@ def dequeue(helper_id, zip_code=None,
             only_local_calls=None, only_global_calls=None,
             accept_german=None, accept_english=None):
 
-    current_timestamp = datetime.utcnow()
+    current_timestamp = datetime.now(timezone(timedelta(hours=2)))
 
     if only_local_calls and only_global_calls:
         return formatting.status('invalid function call - only_local = only_global = True')

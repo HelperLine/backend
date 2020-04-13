@@ -4,8 +4,7 @@ from flask_backend.support_functions import fetching, formatting
 
 from bson.objectid import ObjectId
 from pymongo import UpdateOne
-from datetime import datetime
-
+from datetime import datetime, timezone, timedelta
 
 # These scripts will just be used internally!
 
@@ -27,7 +26,7 @@ def add_caller(phone_number):
 
 def add_call(caller_id, language, call_type='', zip_code=''):
 
-    current_timestamp = datetime.utcnow()
+    current_timestamp = datetime.now(timezone(timedelta(hours=2)))
     # local is boolean
     new_call = {
         'caller_id': ObjectId(caller_id),
@@ -98,7 +97,7 @@ def accept_call(params_dict):
 def fulfill_call(call_id, helper_id):
     # call_id and agent_id are assumed to be valid
 
-    current_timestamp = datetime.utcnow()
+    current_timestamp = datetime.now(timezone(timedelta(hours=2)))
 
     # Change call formatting.status
     call_update = {
@@ -146,7 +145,7 @@ def reject_call(call_id, helper_id):
     new_behavior_log = {
         'helper_id': ObjectId(helper_id),
         'call_id': ObjectId(call_id),
-        'timestamp': datetime.utcnow(),
+        'timestamp': datetime.now(timezone(timedelta(hours=2))),
         'action': 'rejected',
     }
     helper_behavior_collection.insert_one(new_behavior_log)

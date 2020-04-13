@@ -1,8 +1,8 @@
-from flask_backend import helper_accounts_collection, caller_accounts_collection, \
-    calls_collection, zip_codes_collection
+from flask_backend import helper_accounts_collection, caller_accounts_collection, calls_collection, zip_codes_collection
+from flask_backend.support_functions import formatting
 
 from bson import ObjectId
-from flask_backend.support_functions import formatting
+from datetime import timezone, timedelta
 
 
 def get_all_helper_data(email=None, helper_id=None):
@@ -83,9 +83,9 @@ def get_helper_calls_dict(helper_id):
         'call_id': str(call['_id']),
         'status': call['status'],
         'call_type': call['call_type'],
-        'timestamp_received': formatting.datetime_to_string(call['timestamp_received']),
-        'timestamp_accepted': formatting.datetime_to_string(call['timestamp_accepted']),
-        'timestamp_fulfilled': formatting.datetime_to_string(call['timestamp_fulfilled']),
+        'timestamp_received': formatting.datetime_to_string(call['timestamp_received'].astimezone(timezone(timedelta(hours=4)))),
+        'timestamp_accepted': formatting.datetime_to_string(call['timestamp_accepted'].astimezone(timezone(timedelta(hours=4)))),
+        'timestamp_fulfilled': formatting.datetime_to_string(call['timestamp_fulfilled'].astimezone(timezone(timedelta(hours=4)))),
         'comment': call['comment'],
         'phone_number': call['caller'][0]['phone_number']
     } for call in raw_list]

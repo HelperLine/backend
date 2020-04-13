@@ -3,7 +3,7 @@ from flask_backend import helper_accounts_collection, phone_tokens_collection
 from flask_backend.support_functions import tokening, fetching, formatting
 
 from pymongo import DeleteMany, InsertOne
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 
 
@@ -16,7 +16,7 @@ def verify_phone_number(token='', phone_number=''):
     record = phone_tokens_collection.find_one(
         {
             'token': token,
-            'timestamp_issued': {'$gt': datetime.utcnow() - timedelta(minutes=3)},
+            'timestamp_issued': {'$gt': datetime.now(timezone(timedelta(hours=2))) - timedelta(minutes=3)},
         })
 
 
@@ -49,7 +49,7 @@ def trigger_phone_verification(email):
     record = {
         'helper_id': helper_id,
         'token': token,
-        'timestamp_issued': datetime.utcnow(),
+        'timestamp_issued': datetime.now(timezone(timedelta(hours=2))),
     }
     operations = [
         DeleteMany({'helper_id': helper_id}),
