@@ -19,6 +19,7 @@ class RESTCall(Resource):
         params_dict = routing.get_params_dict(request, print_out=True)
 
 
+
         # Step 1) Authenticate
 
         authentication_result = tokening.check_helper_api_key(params_dict)
@@ -45,18 +46,18 @@ class RESTCall(Resource):
 
         # Step 3) Check eligibility to modify this call
 
+        if 'action' not in params_dict:
+            return formatting.status('action missing')
+
         if str(call["helper_id"]) != str(helper["_id"]):
             return formatting.status("not authorized to edit this call")
 
-        if call["status"] == "fulfilled":
+        if (call["status"] == "fulfilled") and (params_dict["action"] in ["reject", "fulfill"]):
             return formatting.status('cannot change a fulfilled call')
 
 
 
         # Step 4) Execute action if possible
-
-        if 'action' not in params_dict:
-            formatting.status('action missing')
 
         if params_dict["action"] == "fulfill":
             call_scripts.fulfill_call(params_dict["call_id"], helper["_id"])
