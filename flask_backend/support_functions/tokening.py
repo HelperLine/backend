@@ -36,21 +36,21 @@ def check_password(password, hashed_password):
     return bcrypt.check_password_hash(hashed_password, password + BCRYPT_SALT)
 
 
-def check_helper_api_key(params_dict):
+def check_helper_api_key(params_dict, new_api_key=False):
     email = params_dict['email']
     api_key = params_dict['api_key']
 
     if email is not None and api_key is not None:
-        return helper_scripts.helper_login_api_key(email, api_key)
+        return helper_scripts.helper_login_api_key(email, api_key, new_api_key=new_api_key)
     else:
         return formatting.status('email/api_key missing')
 
 
-def check_admin_api_key(params_dict):
+def check_admin_api_key(params_dict, new_api_key=False):
     email = params_dict['email']
     api_key = params_dict['api_key']
 
     if email is not None and api_key is not None:
-        return admin_scripts.admin_login_api_key(email, api_key)
+        return admin_scripts.admin_login_api_key(email, api_key, new_api_key=new_api_key)
     else:
         return formatting.status('email/api_key missing')
