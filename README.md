@@ -5,7 +5,7 @@
 
 ## HelperLine (Backend) - A Hotline for People without Internet Access
 
-[*See API v1 Documentation*](https://app.swaggerhub.com/apis-docs/HelperLine/Backend/1.0)
+[*See API v1 Documentation*](https://app.swaggerhub.com/apis-docs/helperline/backend/1.0)
 
 #### Tech Stack
 
