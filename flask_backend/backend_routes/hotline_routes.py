@@ -21,22 +21,22 @@ def twilio_language_to_string(twilio_language):
         return language_translation[twilio_language]
 
 
-@app.route('/hotline/<api_version>', methods=['GET', 'POST'])
+@app.route('/<api_version>/hotline', methods=['GET', 'POST'])
 def route_initial_endpoint(api_version):
-    
+    # STEP 1) Choose Language
+
     resp = VoiceResponse()
     
     if api_version == "v1":
-        # STEP 1) Choose Language
     
         if 'Digits' in request.values:
             choice = request.values['Digits']
     
             if choice == '1':
-                resp.redirect(f'/hotline/{api_version}/de/question/1')
+                resp.redirect(f'/{api_version}/hotline/de/question1')
                 return str(resp)
             elif choice == '2':
-                resp.redirect(f'/hotline/{api_version}/en-gb/question/1')
+                resp.redirect(f'/{api_version}/hotline/en-gb/question1')
                 return str(resp)
             else:
                 for language in ['de', 'en-gb']:
@@ -47,34 +47,34 @@ def route_initial_endpoint(api_version):
             gather.say(hotline_translation['choose_language'][language], voice='woman', language=language)
         resp.append(gather)
     
-        resp.redirect(f'/hotline/{api_version}')
+        resp.redirect(f'/v1/{api_version}/hotline')
     
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/<api_version>/<language>/question/1', methods=['GET', 'POST'])
-def route_hotline_question_1(api_version, language):
-    
+@app.route('/<api_version>/hotline/<language>/question1', methods=['GET', 'POST'])
+def route_hotline_question1(api_version, language):
+    # STEP 2) Local Help or Independet of Location?
+    #         if local: redirect to zip_code captcha
+    #         else: generate caller and call record -> redirect to feedback captcha
+
     resp = VoiceResponse()
 
     if api_version == "v1":
-        # STEP 2) Local Help or Independet of Location?
-        #         if local: redirect to zip_code captcha
-        #         else: generate caller and call record -> redirect to feedback captcha
     
         if 'Digits' in request.values:
             choice = request.values['Digits']
     
             if choice == '1':
-                resp.redirect(f'/hotline/{api_version}/{language}/question/2')
+                resp.redirect(f'/{api_version}/hotline/{language}/question2')
                 return str(resp)
             elif choice == '2':
                 caller_id = call_scripts.add_caller(routing.get_params_dict(request)['Caller'])['caller_id']
                 call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), call_type='global')['call_id']
-                resp.redirect(f'/hotline/{api_version}/{language}/question/3/{call_id}')
+                resp.redirect(f'/{api_version}/hotline/{language}/question3/{call_id}')
                 return str(resp)
             else:
                 resp.say(hotline_translation['unknown_option'][language], voice='woman', language=language)
@@ -83,21 +83,21 @@ def route_hotline_question_1(api_version, language):
         gather.say(hotline_translation['question_1_text_1'][language], voice='woman', language=language)
         resp.append(gather)
     
-        resp.redirect(f'/hotline/{api_version}/{language}/question/1')
+        resp.redirect(f'/{api_version}/hotline/{language}/question1')
 
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/<api_version>/<language>/question/2', methods=['GET', 'POST'])
-def route_hotline_question_2(api_version, language):
-    
+@app.route('/<api_version>/hotline/<language>/question2', methods=['GET', 'POST'])
+def route_hotline_question2(api_version, language):
+    # STEP 2.5) Enter zip code -> generate caller and call record
+
     resp = VoiceResponse()
 
     if api_version == "v1":
-        # STEP 2.5) Enter zip code -> generate caller and call record
     
         gather = Gather(num_digits=6, finish_on_key='#')
     
@@ -110,27 +110,27 @@ def route_hotline_question_2(api_version, language):
     
                 caller_id = call_scripts.add_caller(routing.get_params_dict(request)['Caller'])['caller_id']
                 call_id = call_scripts.add_call(caller_id, twilio_language_to_string(language), call_type='local', zip_code=zip_code)['call_id']
-                resp.redirect(f'/hotline/{api_version}/{language}/question/3/{call_id}')
+                resp.redirect(f'/{api_version}/hotline/{language}/question3/{call_id}')
                 return str(resp)
     
         gather.say(hotline_translation['question_2_text_1'][language], voice='woman', language=language)
         resp.append(gather)
     
-        resp.redirect(f'/hotline/{api_version}/{language}/question/2')
+        resp.redirect(f'/{api_version}/hotline/{language}/question2')
     
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/<api_version>/<language>/question/3/<call_id>', methods=['GET', 'POST'])
-def route_hotline_question_3(api_version, language, call_id):
-    
+@app.route('/<api_version>/hotline/<language>/question3/<call_id>', methods=['GET', 'POST'])
+def route_hotline_question3(api_version, language, call_id):
+    # STEP 3) Are we allowed to call you back for feedback?
+
     resp = VoiceResponse()
 
     if api_version == "v1":
-        # STEP 3) Are we allowed to call you back for feedback?
 
         gather = Gather(num_digits=1)
     
@@ -139,7 +139,7 @@ def route_hotline_question_3(api_version, language, call_id):
     
             if choice in ['1', '2']:
                 call_scripts.set_feeback(call_id, (choice == '1'))
-                resp.redirect(f'/hotline/{api_version}/{language}/question/4/{call_id}')
+                resp.redirect(f'/{api_version}/hotline/{language}/question4/{call_id}')
                 return str(resp)
             else:
                 resp.say(hotline_translation['unknown_option'][language], voice='woman', language=language)
@@ -150,21 +150,21 @@ def route_hotline_question_3(api_version, language, call_id):
         gather.say(hotline_translation['question_3_text_3'][language], voice='woman', language=language)
         resp.append(gather)
     
-        resp.redirect(f'/hotline/{api_version}/{language}/question/3/{call_id}')
+        resp.redirect(f'/{api_version}/hotline/{language}/question3/{call_id}')
     
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/<api_version>/<language>/question/4/<call_id>', methods=['GET', 'POST'])
-def route_hotline_question_4(api_version, language, call_id):
-    
+@app.route('/<api_version>/hotline/<language>/question4/<call_id>', methods=['GET', 'POST'])
+def route_hotline_question4(api_version, language, call_id):
+    # STEP 4) Confirm or Cancel the Call
+
     resp = VoiceResponse()
 
     if api_version == "v1":
-        # STEP 4) Confirm or Cancel the Call
 
         gather = Gather(num_digits=1)
     
@@ -172,13 +172,11 @@ def route_hotline_question_4(api_version, language, call_id):
             choice = request.values['Digits']
     
             if choice == '1':
-                # TODO: Async Task - maybe Celery?
                 call_scripts.set_confirmed(call_id, True)
                 resp.say(hotline_translation['question_4_answer_confirm'][language], voice='woman', language=language)
-                resp.redirect(f'/hotline/{api_version}/{language}/forward/{call_id}')
+                resp.redirect(f'/{api_version}/hotline/{language}/forward1/{call_id}')
                 return str(resp)
             elif choice == '2':
-                # TODO: Async Task - maybe Celery?
                 call_scripts.set_confirmed(call_id, False)
                 resp.say(hotline_translation['question_4_answer_cancel'][language], voice='woman', language=language)
                 return str(resp)
@@ -188,16 +186,16 @@ def route_hotline_question_4(api_version, language, call_id):
         gather.say(hotline_translation['question_4_text_1'][language], voice='woman', language=language)
         resp.append(gather)
     
-        resp.redirect(f'/hotline/{api_version}/{language}/question/4/{call_id}')
+        resp.redirect(f'/{api_version}/hotline/{language}/question4/{call_id}')
     
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/<api_version>/<language>/forward/<call_id>', methods=['GET', 'POST'])
-def route_hotline_forward(api_version, language, call_id):
+@app.route('/<api_version>/hotline/<language>/forward1/<call_id>', methods=['GET', 'POST'])
+def route_hotline_forward1(api_version, language, call_id):
     
     resp = VoiceResponse()
 
@@ -210,7 +208,7 @@ def route_hotline_forward(api_version, language, call_id):
             phone_number = forward_helper_query_result["phone_number"]
             helper_id = forward_helper_query_result['helper_id']
             resp.dial(phone_number,
-                      action=f"/hotline/{api_version}/{language}/after-forward/{call_id}/{helper_id}",
+                      action=f"/{api_version}/hotline/{language}/forward2/{call_id}/{helper_id}",
                       timeout=15)
     
         else:
@@ -218,13 +216,13 @@ def route_hotline_forward(api_version, language, call_id):
             enqueue.enqueue(call_id)
     
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/<api_version>/<language>/after-forward/<call_id>/<helper_id>', methods=['GET', 'POST'])
-def route_hotline_after_forward(api_version, language, call_id, helper_id):
+@app.route('/<api_version>/hotline/<language>/forward2/<call_id>/<helper_id>', methods=['GET', 'POST'])
+def route_hotline_forward2(api_version, language, call_id, helper_id):
     
     resp = VoiceResponse()
 
@@ -240,34 +238,38 @@ def route_hotline_after_forward(api_version, language, call_id, helper_id):
             resp.say(hotline_translation['after_forward_not_successful'][language], voice='woman', language=language)
 
     else:
-        resp.redirect('/hotline/error/api_version')
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
 
 
-@app.route('/hotline/error/general', methods=['GET', 'POST'])
-def route_hotline_error_general():
-
+@app.route('/<api_version>/hotline/error/general', methods=['GET', 'POST'])
+def route_hotline_error_general(api_version):
     # Error response in case the server does not produce a valid response at some point
 
     resp = VoiceResponse()
 
-    for language in ['de', 'en-gb']:
-        resp.say(hotline_translation['error_message_general'][language], voice='woman', language=language)
+    if api_version == "v1":
+        for language in ['de', 'en-gb']:
+            resp.say(hotline_translation['error_message_general'][language], voice='woman', language=language)
+    else:
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
 
 
-@app.route('/hotline/error/api_version', methods=['GET', 'POST'])
-def route_hotline_error_api_version():
-
+@app.route('/<api_version>/hotline/error/api_version', methods=['GET', 'POST'])
+def route_hotline_error_api_version(api_version):
     # Error response in case an invalid api_version is requested
 
     resp = VoiceResponse()
 
-    for language in ['de', 'en-gb']:
-        resp.say(hotline_translation['error_message_api_version'][language], voice='woman', language=language)
+    if api_version == "v1":
+        for language in ['de', 'en-gb']:
+            resp.say(hotline_translation['error_message_api_version'][language], voice='woman', language=language)
+    else:
+        resp.redirect('/v1/hotline/error/api_version')
 
     return str(resp)
