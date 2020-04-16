@@ -6,8 +6,12 @@ from flask import redirect
 
 @app.route("/", methods=["GET"])
 def route_index():
-    return "<p>This is the helperline backend. See <a href=" \
-           "'https://helperline.io/'>helperline.io</a> for more.</p>"
+    return "<p>This is the helperline backend." \
+           "<br/><br/>" \
+           "See <a href='https://helperline.io/' target='_blank'>helperline.io</a> for more." \
+           "<br/><br/>" \
+           "See the API documentation <a href='/v1/docs' target='_blank'>here</a>.</p>"
+
 
 
 @app.route("/<api_version>/docs")
