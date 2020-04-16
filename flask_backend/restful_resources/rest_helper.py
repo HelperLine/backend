@@ -1,12 +1,12 @@
 
 from flask_backend.database_scripts.helper_scripts import helper_scripts
-from flask_backend.support_functions import routing, fetching, tokening
+from flask_backend.support_functions import routing, tokening
 
 from flask_restful import Resource
 from flask import request
 
 
-class RESTHelper(Resource):
+class RESTAccount(Resource):
     # IMPORTANT: For all of the following operations (except creating accounts) a
     # valid email/api_key pair must be provided! Otherwise private data might
     # leak to non-authorized entities
@@ -15,16 +15,16 @@ class RESTHelper(Resource):
         # Get all infos for a specific account
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_helper_api_key(params_dict)
+        authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        return fetching.get_all_helper_data(params_dict['email'])
+        return helper_scripts.get_account(params_dict['email'], authentication_result['api_key'])
 
 
     def post(self):
         # Create a new account
-        return helper_scripts.add_helper_account(routing.get_params_dict(request))
+        return helper_scripts.create_account(routing.get_params_dict(request))
 
 
     def put(self):
@@ -35,4 +35,4 @@ class RESTHelper(Resource):
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        return helper_scripts.modify_helper_account(params_dict)
+        return helper_scripts.modify_account(params_dict)

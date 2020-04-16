@@ -1,7 +1,6 @@
-
-from flask_backend import helper_accounts_collection, helper_api_keys_collection, email_tokens_collection
+from flask_backend import helper_accounts_collection, email_tokens_collection
 from flask_backend.database_scripts.helper_scripts import email_verification, verify_register_form, api_authentication
-from flask_backend.support_functions import tokening, fetching, verifying, formatting
+from flask_backend.support_functions import tokening, verifying, formatting
 
 from pymongo.errors import DuplicateKeyError
 import datetime
@@ -9,41 +8,67 @@ import time
 from datetime import timezone, timedelta
 
 
-def add_helper_account(params_dict):
+def get_account(email, new_api_key):
+    helper_account = helper_accounts_collection.find_one({'email': email})
+
+    if helper_account is None:
+        return formatting.status("server error - missing helper record after successful authentication")
+
+    return formatting.status("ok", new_api_key=new_api_key, account=helper_account['account'])
+
+
+def create_account(params_dict):
+    if 'account' not in params_dict:
+        return formatting.status("account missing")
+
     for key in ['email', 'password', 'zip_code', 'country']:
-        if key not in params_dict:
+        if key not in params_dict['account']:
             return formatting.status(f'{key} missing')
 
-    email = params_dict["email"]
-    password = params_dict["password"]
-    zip_code = params_dict["zip_code"]
-    country = params_dict["country"]
+    email = params_dict["account"]["email"]
+    password = params_dict["account"]["password"]
+    zip_code = params_dict["account"]["zip_code"]
+    country = params_dict["account"]["country"]
 
     verification_status = verify_register_form.verify_register_form(email, password, zip_code, country)
 
     if verification_status['status'] == 'ok':
+
+        current_timestamp = datetime.datetime.now(timezone(timedelta(hours=2)))
         new_helper = {
             'email': email,
-            'email_verified': False,
 
-            'phone_number': '',
-            'phone_number_verified': False,  # Verfication from our side (Call and enter confirmation code)
-            'phone_number_confirmed': False,  # Confirmation from the volunteer ('Is this your phone number?')
+            'account': {
+                'register_date': current_timestamp.strftime('%d.%m.%y'),
+                'email_verified': False,
 
-            'hashed_password': tokening.hash_password(password),
-            'zip_code': zip_code,
-            'country': country,
+                'phone_number': '',
+                'phone_number_verified': False,  # Verfication from our side (Call and enter confirmation code)
+                'phone_number_confirmed': False,  # Confirmation from the volunteer ('Is this your phone number?')
 
-            'register_date': datetime.datetime.now(timezone(timedelta(hours=2))).strftime('%d.%m.%y'),
+                'hashed_password': tokening.hash_password(password),
+                'zip_code': zip_code,
+                'country': country,
+            },
 
-            'filter_type_local': False,
-            'filter_type_global': False,
-            'filter_language_german': False,
-            'filter_language_english': False,
+            'filter': {
+                'type': {
+                    'only_local': False,
+                    'only_global': False,
+                },
+                'language': {
+                    'accept_german': False,
+                    'accept_english': False,
+                },
+            },
 
-            'online': False,
-            'last_switched_online': datetime.datetime.now(timezone(timedelta(hours=2))),
-            'online_schedule': []
+            'forward': {
+                'online': False,
+                'last_switched_online': current_timestamp,
+
+                'schedule_active': False,
+                'schedule': []
+            }
         }
 
         try:
@@ -65,105 +90,66 @@ def add_helper_account(params_dict):
         return verification_status
 
 
-def modify_helper_account(params_dict):
+def modify_account(params_dict):
+    existing_document = helper_accounts_collection.find_one({'email': params_dict["email"]})
+    existing_account = existing_document["account"]
+    new_account = params_dict["account"]
 
-    email = params_dict["email"]  # proven to exists after authentication
+    # Strategy: Modify new_account to be the update_dict for the helper account
+    # All keys not in new_account remain unchanged
 
-    helper_account = helper_accounts_collection.find_one({'email': email})
+    new_email = existing_document["email"]
 
-    new_filter_type_local = new_filter_type_global = None
-
-    if 'filter_type_local' in params_dict and 'filter_type_global' in params_dict:
-        if not (params_dict['filter_type_local'] and params_dict['filter_type_global']):
-            new_filter_type_local = params_dict['filter_type_local']
-            new_filter_type_global = params_dict['filter_type_global']
-
-    if new_filter_type_local is None or new_filter_type_global is None:
-        new_filter_type_local = helper_account['filter_type_local']
-        new_filter_type_global = helper_account['filter_type_global']
-
-    if 'filter_language_german' in params_dict:
-        new_filter_language_german = params_dict['filter_language_german']
-    else:
-        new_filter_language_german = helper_account['filter_language_german']
-
-    if 'filter_language_english' in params_dict:
-        new_filter_language_english = params_dict['filter_language_english']
-    else:
-        new_filter_language_english = helper_account['filter_language_english']
-
-    if 'new_email' in params_dict:
-        if (email != params_dict['new_email']) and (helper_account['email_verified']):
-            return formatting.status('email already verified')
-        else:
-            if not verifying.verify_email_format(params_dict['new_email']):
-                return formatting.status('email format invalid')
+    if 'email' in new_account:
+        if (existing_document["email"] != new_account["email"]):
+            if (existing_account['email_verified']):
+                return formatting.status('email already verified')
             else:
-                new_email = params_dict['new_email']
-    else:
-        new_email = email
+                if not verifying.verify_email_format(new_account['email']):
+                    return formatting.status('email format invalid')
 
-    if 'old_password' in params_dict and 'new_password' in params_dict:
-        if tokening.check_password(params_dict['old_password'], helper_account['hashed_password']):
-            if not verifying.verify_password_format(params_dict['new_password']):
-                return formatting.status('password format invalid')
-            else:
-                new_password = tokening.hash_password(params_dict['new_password'])
+            # Send new verification email if new email valid
+            email_tokens_collection.delete_one({'email': existing_document["email"]})
+            email_verification.trigger_email_verification(new_account["email"])
+            new_email = new_account["email"]
+
+    # this does not raise errors if the key does not exist
+    new_account.pop('email', None)
+
+    if 'old_password' in new_account and 'new_password' in new_account:
+        if tokening.check_password(new_account['old_password'], existing_account['hashed_password']):
+            if not verifying.verify_password_format(new_account['new_password']):
+                return formatting.status('new_password format invalid')
+            new_account.update({
+                "hashed_password": tokening.hash_password(new_account['new_password'])
+            })
         else:
             return formatting.status('old_password invalid')
-    else:
-        new_password = helper_account['hashed_password']
 
-    if 'zip_code' in params_dict:
-        if not verifying.verify_zip_code_format(params_dict['zip_code']):
+    # these do not raise errors if any of these keys does not exist
+    new_account.pop('old_password', None)
+    new_account.pop('new_password', None)
+
+    if 'zip_code' in new_account:
+        if not verifying.verify_zip_code_format(new_account['zip_code']):
             return formatting.status('zip_code format invalid')
-        else:
-            new_zip_code = params_dict['zip_code']
-    else:
-        new_zip_code = helper_account['zip_code']
 
-    if 'country' in params_dict:
+    if 'country' in new_account:
         if not verifying.verify_country_format(params_dict['country']):
             return formatting.status('country invalid')
-        else:
-            new_country = params_dict['country']
-    else:
-        new_country = helper_account['country']
 
-    if (new_email != helper_account['email']) or (new_password != helper_account['hashed_password']) or \
-            (new_zip_code != helper_account['zip_code']) or (new_country != helper_account['country']) or \
-            (new_filter_type_local != helper_account['filter_type_local']) or \
-            (new_filter_type_global != helper_account['filter_type_global']) or \
-            (new_filter_language_german != helper_account['filter_language_german']) or \
-            (new_filter_language_english != helper_account['filter_language_english']):
+    if any([(key not in ["hashed_password", "zip_code", "country"]) for key in new_account]):
+        return formatting.status("too many parameters")
 
-        modified_helper_account = {
+    helper_accounts_collection.update_one(
+        {'email': existing_account},
+        {'$set': {
             'email': new_email,
+            'account': new_account
+        }}
+    )
 
-            'hashed_password': new_password,
-            'zip_code': new_zip_code,
-            'country': new_country,
-
-            'filter_type_local': new_filter_type_local,
-            'filter_type_global': new_filter_type_global,
-            'filter_language_german': new_filter_language_german,
-            'filter_language_english': new_filter_language_english,
-        }
-
-        helper_accounts_collection.update_one({'email': email}, {'$set': modified_helper_account})
-
-        if email != new_email:
-            helper_api_keys_collection.update_one({'email': email}, {'$set': {'email': new_email}})
-            email_tokens_collection.delete_one({'email': email})
-            email_verification.trigger_email_verification(new_email)
-
-        # api_key remains the same
-        response_dict = fetching.get_all_helper_data(new_email)
-    else:
-        response_dict = fetching.get_all_helper_data(email)
-
-    return response_dict
-
+    return formatting.status("ok")
 
 
 if __name__ == '__main__':
