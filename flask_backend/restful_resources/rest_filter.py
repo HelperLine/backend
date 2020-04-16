@@ -15,7 +15,7 @@ class RESTFilter(Resource):
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        return filter_scripts.get_filters(params_dict['email'], authentication_result['api_key'])
+        return filter_scripts.get_filter(params_dict['email'], authentication_result['api_key'])
 
 
     def put(self):
@@ -25,5 +25,5 @@ class RESTFilter(Resource):
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        return filter_scripts.modify_filters(params_dict)
+        return filter_scripts.modify_filter(params_dict)
 
