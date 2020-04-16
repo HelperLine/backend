@@ -15,27 +15,12 @@ def get_filter(email, new_api_key):
 
 def modify_filter(params_dict):
 
-    # Sequential if-statements because the latter
-    # ones depend on the previous ones to be true
-
-    for key in ['filter_type_local', 'filter_type_global', 'filter_language_german', 'filter_language_english']:
-        if key not in params_dict:
-            return formatting.status("filters missing")
-        if type(params_dict[key]) != bool:
-            return formatting.status("filters invalid")
-
-    if (params_dict['filter_type_local'] and params_dict['filter_type_global']):
-        return "filters invalid"
+    # params_dict["filter"] has already been validated
 
     helper_accounts_collection.update_one(
         {'email': params_dict["email"]},
         {'$set': {
-            'filter': {
-                'filter_type_local': params_dict['filter_type_local'],
-                'filter_type_global': params_dict['filter_type_global'],
-                'filter_language_german': params_dict['filter_language_german'],
-                'filter_language_english': params_dict['filter_language_english'],
-            }
+            'filter': params_dict["filter"]
         }}
     )
 

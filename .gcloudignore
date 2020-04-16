@@ -27,10 +27,11 @@ __pycache__/
 /docs
 /venv
 /README.md
+/flask_backend/secrets.py
+
 /service-account.json
 /flask_backend/database_scripts/seed_scripts/service-account.json
-/flask_backend/secrets.py
-/service-account.json
+/flask_backend/support_functions/service-account.json
 
 
 

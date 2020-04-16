@@ -19,6 +19,7 @@ twilio = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 google-cloud-datastore = "*"
+cerberus = "*"
 
 [requires]
 python_version = "3.8"

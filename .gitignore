@@ -5,8 +5,9 @@
 /react_frontend
 /service-account.json
 /flask_backend/database_scripts/seed_scripts/service-account.json
+/flask_backend/support_functions/service-account.json
 
-
+/requirements.txt
 
 
 
