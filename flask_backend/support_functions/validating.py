@@ -183,18 +183,36 @@ edit_account_schema = {
 }
 
 
+edit_call_schema = {
+    'call_id': {
+        'type': 'integer',
+        'required': True,
+    },
+    'action': {
+        'type': 'string',
+        'required': True,
+        'allowed': ['reject', 'fulfill', 'comment'],
+        'oneof': [{'dependencies': ['comment'], 'allowed': ['comment']}, {'allowed': ['reject', 'fulfill']}]
+    },
+    'comment': {
+        'type': 'string',
+        'dependencies': {'action': ['comment']}
+    },
+}
+
+
 def validate(filter_document, validator_object):
     if validator_object.validate(filter_document):
         return formatting.status('ok')
     else:
-        error_message = f'validation error: {str(validator_object.errors)}'
-        return formatting.status(error_message)
+        return formatting.status('validation error', errors=validator_object.errors)
 
 
 filter_validator = Validator(filter_schema)
 forward_validator = Validator(forward_schema)
 create_account_validator = Validator(create_account_schema)
 edit_account_validator = Validator(edit_account_schema)
+edit_call_validator = Validator(edit_call_schema)
 
 
 def validate_filter(params_dict):
@@ -221,7 +239,14 @@ def validate_edit_account(params_dict):
     return validate(params_dict["account"], edit_account_validator)
 
 
+def validate_edit_call(params_dict):
+    if "call" not in params_dict:
+        return formatting.status("call missing")
+    return validate(params_dict["call"], edit_call_validator)
+
+
 if __name__ == '__main__':
+
     filter_example = {
         'call_type': {
             'only_local': True,
@@ -232,6 +257,8 @@ if __name__ == '__main__':
             'english': False,
         },
     }
+    print(validate_filter({"filter": filter_example}))
+
 
     forward_example = {
         'online': False,
@@ -241,6 +268,9 @@ if __name__ == '__main__':
             {'from': 12, 'to': 10},
         ],
     }
+    print(validate_forward({"forward": forward_example}))
+
+
 
     create_account_example = {
         'email': "a@b.c",
@@ -248,14 +278,38 @@ if __name__ == '__main__':
         'zip_code': "80000",
         'country': "germany"
     }
+    print(validate_create_account({"account": create_account_example}))
+
+
 
     edit_account_example = {
         'new_email': "a@b..c",
         'zip_code': "40000",
         'country': "Germany"
     }
-
-    print(validate_filter({"filter": filter_example}))
-    print(validate_forward({"forward": forward_example}))
-    print(validate_create_account({"account": create_account_example}))
     print(validate_edit_account({"account": edit_account_example}))
+
+
+
+    edit_call_example_1 = {
+        'call_id': 12,
+        'action': "reject",
+        'comment': "bla",
+    }
+    edit_call_example_2 = {
+        'call_id': 12,
+        'action': "reject",
+    }
+    edit_call_example_3 = {
+        'call_id': 12,
+        'action': "comment",
+    }
+    edit_call_example_4 = {
+        'call_id': 12,
+        'action': "comment",
+        'comment': "bla",
+    }
+    print(validate_edit_call({"call": edit_call_example_1}))
+    print(validate_edit_call({"call": edit_call_example_2}))
+    print(validate_edit_call({"call": edit_call_example_3}))
+    print(validate_edit_call({"call": edit_call_example_4}))

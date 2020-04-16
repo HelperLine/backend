@@ -7,47 +7,9 @@ from bson import ObjectId
 from datetime import datetime, timedelta, timezone
 
 
-def set_online(params_dict):
-
-    if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
-            'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
-        return formatting.status('filter parameters missing')
-
-    helper = helper_accounts_collection.find_one({'email': params_dict['email']})
-
-    if helper is None:
-        return formatting.status('server error: helper record not found')
-
-    if helper["phone_number"] == "" or not helper["phone_number_verified"] or not helper["phone_number_confirmed"]:
-        return formatting.status("phone number not verified/confirmed")
-
-    helper_update = {
-        'filter_type_local': params_dict["filter_type_local"],
-        'filter_type_global': params_dict["filter_type_global"],
-        'filter_language_german': params_dict["filter_language_german"],
-        'filter_language_english': params_dict["filter_language_english"],
-
-        'online': True,
-        'last_switched_online': datetime.now(timezone(timedelta(hours=2))),
-    }
-    helper_accounts_collection.update_one({'email': params_dict['email']}, {"$set": helper_update})
-
-    return fetching.get_all_helper_data(email=params_dict['email'])
-
-
-def set_offline(params_dict):
-    helper_update = {
-        'online': False,
-    }
-    helper_accounts_collection.update_one({'email': params_dict['email']}, {"$set": helper_update})
-
-    return fetching.get_all_helper_data(email=params_dict['email'])
-
-
 def find_forward_helper(call_id):
     # Returns formatting.status="ok" and helper phone number if helper was found
     # Returns formatting.status="no helper available" if no helper was found.
-
 
     call = calls_collection.find_one({"_id": ObjectId(call_id)})
 

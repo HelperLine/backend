@@ -1,5 +1,4 @@
-
-from flask_backend.database_scripts.filter_scripts import filter_scripts
+from flask_backend.database_scripts.settings_scripts import filter_scripts
 from flask_backend.support_functions import routing, tokening, validating
 
 from flask_restful import Resource

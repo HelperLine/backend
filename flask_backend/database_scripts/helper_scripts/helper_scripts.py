@@ -1,5 +1,6 @@
 from flask_backend import helper_accounts_collection, email_tokens_collection
-from flask_backend.database_scripts.helper_scripts import email_verification, api_authentication
+from flask_backend.database_scripts.helper_scripts import email_verification
+from flask_backend.database_scripts.authentication_scripts import helper_authentication
 from flask_backend.support_functions import tokening, formatting
 
 from pymongo.errors import DuplicateKeyError
@@ -74,7 +75,7 @@ def create_account(params_dict):
     email_verification.trigger_email_verification(email)
 
     # login and return email/api_key dict
-    return api_authentication.helper_login_password(email, password)
+    return helper_authentication.helper_login_password(email, password)
 
 
 def modify_account(params_dict):

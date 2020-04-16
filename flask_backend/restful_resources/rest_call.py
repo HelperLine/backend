@@ -15,12 +15,9 @@ class RESTCall(Resource):
 
     def put(self):
 
-        # Modify an existing account
+        # Modify an accepted calll
+
         params_dict = routing.get_params_dict(request, print_out=True)
-
-
-
-        # Step 1) Authenticate
 
         authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
@@ -34,9 +31,6 @@ class RESTCall(Resource):
         if helper is None:
             return formatting.status("server error: helper record not found after successful authentication")
 
-        if 'call_id' not in params_dict:
-            return formatting.status('call_id missing')
-
         call = calls_collection.find_one({"_id": ObjectId(params_dict["call_id"])})
 
         if call is None:
@@ -46,9 +40,6 @@ class RESTCall(Resource):
 
         # Step 3) Check eligibility to modify this call
 
-        if 'action' not in params_dict:
-            return formatting.status('action missing')
-
         if str(call["helper_id"]) != str(helper["_id"]):
             return formatting.status("not authorized to edit this call")
 
@@ -57,8 +48,6 @@ class RESTCall(Resource):
 
 
 
-        # Step 4) Execute action if possible
-
         if params_dict["action"] == "fulfill":
             call_scripts.fulfill_call(params_dict["call_id"], helper["_id"])
 
@@ -66,15 +55,6 @@ class RESTCall(Resource):
             call_scripts.reject_call(params_dict["call_id"], helper["_id"])
 
         elif params_dict["action"] == "comment":
-            if 'comment' not in params_dict:
-                return formatting.status('comment missing')
-
             call_scripts.comment_call(params_dict["call_id"], params_dict["comment"])
-        else:
-            return formatting.status('action invalid')
 
-
-
-        # Step 5) Fetch new account state
-
-        return fetching.get_all_helper_data(email=params_dict["email"])
+        return formatting.status("ok")

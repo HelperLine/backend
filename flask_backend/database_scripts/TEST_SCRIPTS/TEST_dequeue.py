@@ -1,5 +1,6 @@
 from flask_backend import call_queue, helper_accounts_collection, helper_behavior_collection, calls_collection
-from flask_backend.database_scripts.call_scripts import enqueue, dequeue
+from flask_backend.database_scripts.call_scripts import dequeue
+from flask_backend.database_scripts.hotline_scripts import enqueue
 from flask_backend.support_functions import testing
 
 from datetime import datetime, timedelta
