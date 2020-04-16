@@ -1,6 +1,6 @@
 
 from flask_backend.database_scripts.helper_scripts import helper_scripts
-from flask_backend.support_functions import routing, tokening
+from flask_backend.support_functions import routing, tokening, validating
 
 from flask_restful import Resource
 from flask import request
@@ -24,7 +24,13 @@ class RESTAccount(Resource):
 
     def post(self):
         # Create a new account
-        return helper_scripts.create_account(routing.get_params_dict(request))
+        params_dict = routing.get_params_dict(request)
+
+        validation_result = validating.validate_create_account(params_dict)
+        if validation_result["status"] != "ok":
+            return validation_result
+
+        return helper_scripts.create_account(params_dict)
 
 
     def put(self):
@@ -34,5 +40,9 @@ class RESTAccount(Resource):
         authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
             return authentication_result
+
+        validation_result = validating.validate_edit_account(params_dict)
+        if validation_result["status"] != "ok":
+            return validation_result
 
         return helper_scripts.modify_account(params_dict)

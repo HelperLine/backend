@@ -2,6 +2,10 @@
 from cerberus import Validator
 from flask_backend.support_functions import formatting
 
+DIGITS = [chr(i) for i in range(48, 58)]
+UPPER_CASE_LETTERS = [chr(i) for i in range(65, 91)]
+LOWER_CASE_LETTERS = [chr(i) for i in range(97, 123)]
+
 
 def check_filter_call_type(field, call_type_dict, error):
     true_count = 0
@@ -51,7 +55,7 @@ forward_schema = {
         'type': 'boolean',
         'required': True,
     },
-    'switch_online_after_call': {
+    'stay_online_after_call': {
         'type': 'boolean',
         'required': True,
     },
@@ -74,6 +78,111 @@ forward_schema = {
 }
 
 
+def check_account_email(field, email, error):
+
+    def invalid():
+        error(field, 'email format invalid')
+        return
+
+    if type(email) == str:
+
+        # Chained if statements because the latter depend on the previous
+        # ones to be true in order not to throw an interpreter error
+
+        email_parts = email.split('@')
+        if len(email_parts) != 2:
+            return invalid()
+
+        if len(email_parts[0]) == 0:
+            return invalid()
+
+        if '.' not in email_parts[1]:
+            return invalid()
+
+        if '.' not in email_parts[1]:
+            return invalid()
+
+        email_domain_parts = email_parts[1].split('.')
+        if any([(len(part) == 0) for part in email_domain_parts]):
+            return invalid()
+
+
+def check_account_password(field, password, error):
+    if type(password) == str:
+        no_digit_characters = not any([(c in DIGITS) for c in password])
+        no_lower_characters = not any([(c in LOWER_CASE_LETTERS) for c in password])
+        no_upper_characters = not any([(c in UPPER_CASE_LETTERS) for c in password])
+        invalid_length = len(password) < 8
+
+        if no_digit_characters or no_lower_characters or no_upper_characters or invalid_length:
+            error(field, 'password format invalid')
+
+
+def check_account_zip_code(field, zip_code, error):
+    if type(zip_code) == str:
+        non_digit_characters = any([(c not in DIGITS) for c in zip_code])
+        invalid_length = len(zip_code) != 5
+
+        if non_digit_characters or invalid_length:
+            error(field, 'zip_code format invalid')
+
+
+def check_account_country(field, country, error):
+    if country not in ['Germany', 'Deutschland']:
+        error(field, 'we currently offer our services only in Germany/Deutschland')
+
+
+create_account_schema = {
+    'email': {
+        'type': 'string',
+        'required': True,
+        'check_with': check_account_email
+    },
+    'password': {
+        'type': 'string',
+        'required': True,
+        'check_with': check_account_password
+    },
+    'zip_code': {
+        'type': 'string',
+        'required': True,
+        'check_with': check_account_zip_code
+    },
+    'country': {
+        'type': 'string',
+        'required': True,
+        'check_with': check_account_country
+    },
+}
+
+edit_account_schema = {
+    'new_email': {
+        'type': 'string',
+        'required': False,
+        'check_with': check_account_email
+    },
+    'old_password': {
+        'type': 'string',
+        'required': False,
+    },
+    'new_password': {
+        'type': 'string',
+        'required': False,
+        'check_with': check_account_password
+    },
+    'zip_code': {
+        'type': 'string',
+        'required': False,
+        'check_with': check_account_zip_code
+    },
+    'country': {
+        'type': 'string',
+        'required': False,
+        'check_with': check_account_country
+    },
+}
+
+
 def validate(filter_document, validator_object):
     if validator_object.validate(filter_document):
         return formatting.status('ok')
@@ -81,17 +190,35 @@ def validate(filter_document, validator_object):
         error_message = f'validation error: {str(validator_object.errors)}'
         return formatting.status(error_message)
 
- 
+
 filter_validator = Validator(filter_schema)
 forward_validator = Validator(forward_schema)
+create_account_validator = Validator(create_account_schema)
+edit_account_validator = Validator(edit_account_schema)
 
 
-def validate_filter(filter_document):
-    return validate(filter_document, filter_validator)
+def validate_filter(params_dict):
+    if "filter" not in params_dict:
+        return formatting.status("filter missing")
+    return validate(params_dict["filter"], filter_validator)
 
 
-def validate_forward(forward_document):
-    return validate(forward_document, forward_validator)
+def validate_forward(params_dict):
+    if "forward" not in params_dict:
+        return formatting.status("forward missing")
+    return validate(params_dict["forward"], forward_validator)
+
+
+def validate_create_account(params_dict):
+    if "account" not in params_dict:
+        return formatting.status("account missing")
+    return validate(params_dict["account"], create_account_validator)
+
+
+def validate_edit_account(params_dict):
+    if "account" not in params_dict:
+        return formatting.status("account missing")
+    return validate(params_dict["account"], edit_account_validator)
 
 
 if __name__ == '__main__':
@@ -115,5 +242,20 @@ if __name__ == '__main__':
         ],
     }
 
-    print(validate_filter(filter_example))
-    print(validate_forward(forward_example))
+    create_account_example = {
+        'email': "a@b.c",
+        'password': "aaaaaaA3",
+        'zip_code': "80000",
+        'country': "germany"
+    }
+
+    edit_account_example = {
+        'new_email': "a@b..c",
+        'zip_code': "40000",
+        'country': "Germany"
+    }
+
+    print(validate_filter({"filter": filter_example}))
+    print(validate_forward({"forward": forward_example}))
+    print(validate_create_account({"account": create_account_example}))
+    print(validate_edit_account({"account": edit_account_example}))

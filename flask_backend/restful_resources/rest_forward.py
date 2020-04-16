@@ -25,10 +25,7 @@ class RESTForward(Resource):
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        if "forward" not in params_dict:
-            return "forward missing"
-
-        validation_result = validating.validate_forward(params_dict["forward"])
+        validation_result = validating.validate_forward(params_dict)
         if validation_result["status"] != "ok":
             return validation_result
 

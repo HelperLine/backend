@@ -25,10 +25,7 @@ class RESTFilter(Resource):
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        if "filter" not in params_dict:
-            return "filter missing"
-
-        validation_result = validating.validate_filter(params_dict["filter"])
+        validation_result = validating.validate_filter(params_dict)
         if validation_result["status"] != "ok":
             return validation_result
 
