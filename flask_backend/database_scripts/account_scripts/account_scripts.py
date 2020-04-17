@@ -1,4 +1,4 @@
-from flask_backend import helper_accounts_collection, email_tokens_collection
+from flask_backend import helper_accounts_collection, email_tokens_collection, helper_api_keys_collection
 from flask_backend.database_scripts.verification_scripts import email_verification
 from flask_backend.database_scripts.authentication_scripts import helper_authentication
 from flask_backend.support_functions import tokening, formatting
@@ -68,7 +68,7 @@ def create_account(params_dict):
         # If two people sign up exactla at once
         # (verfication done but inserting fails for one)
         print(f'DuplicateKeyError: {e}')
-        return formatting.status('email already taken'), 400
+        return formatting.status('email already taken')
 
     # Send verification email and add verification record
     email_verification.trigger(email)
@@ -82,42 +82,41 @@ def modify_account(params_dict):
     existing_account = existing_document["account"]
     new_account = params_dict["account"]
 
-    # Strategy: Modify new_account to be the update_dict for the helper account
-    # All keys not in new_account remain unchanged
-
-    new_email = existing_document["email"]
+    update_dict = {}
 
     if 'new_email' in new_account:
-        if (existing_document["email"] != new_account["email"]):
+        if (existing_document["email"] != new_account["new_email"]):
             if (existing_account['email_verified']):
-                return formatting.status('email already verified'), 400
-
-            # Send new verification email if new email valid
-            email_tokens_collection.delete_one({'email': existing_document["email"]})
-            email_verification.trigger(new_account["new_email"])
-            new_account.update({"email": new_account["new_email"]})
-
-    # this does not raise errors if the key does not exist
-    new_account.pop('new_email', None)
+                return formatting.status('email already verified')
+            else:
+                update_dict.update({"email": new_account["new_email"]})
 
     if 'old_password' in new_account and 'new_password' in new_account:
-        if not tokening.check_password(new_account['old_password'], existing_account['hashed_password']):
-            return formatting.status('old_password invalid'), 400
-        new_account.update({"hashed_password": tokening.hash_password(new_account['new_password'])})
+        if tokening.check_password(new_account['old_password'], existing_account['hashed_password']):
+            update_dict.update({"account.hashed_password": tokening.hash_password(new_account['new_password'])})
+        else:
+            return formatting.status('old_password invalid')
 
-    # these do not raise errors if any of these keys does not exist
-    new_account.pop('old_password', None)
-    new_account.pop('new_password', None)
+    if 'zip_code' in new_account:
+        update_dict.update({"account.zip_code": new_account['zip_code']})
 
-    helper_accounts_collection.update_one(
-        {'email': existing_account},
-        {'$set': {
-            'email': new_email,
-            'account': new_account
-        }}
-    )
+    if 'country' in new_account:
+        update_dict.update({"account.country": new_account['country']})
 
-    return formatting.status("ok"), 200
+    if len(update_dict) != 0:
+        helper_accounts_collection.update_one(
+            {'email': existing_document["email"]},
+            {'$set': update_dict}
+        )
+
+        if "email" in update_dict:
+            # Send new verification email if new email valid
+            email_tokens_collection.delete_many({'email': existing_document["email"]})
+            helper_api_keys_collection.update_one({'email': existing_document["email"]},
+                                                  {'$set': {'email': update_dict["email"]}})
+            email_verification.trigger(update_dict["email"])
+
+    return formatting.status("ok")
 
 
 if __name__ == '__main__':
