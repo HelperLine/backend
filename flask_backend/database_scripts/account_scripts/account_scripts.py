@@ -1,5 +1,5 @@
 from flask_backend import helper_accounts_collection, email_tokens_collection
-from flask_backend.database_scripts.helper_scripts import email_verification
+from flask_backend.database_scripts.account_scripts import email_verification
 from flask_backend.database_scripts.authentication_scripts import helper_authentication
 from flask_backend.support_functions import tokening, formatting
 

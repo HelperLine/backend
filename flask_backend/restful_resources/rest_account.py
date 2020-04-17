@@ -1,5 +1,5 @@
 
-from flask_backend.database_scripts.helper_scripts import helper_scripts
+from flask_backend.database_scripts.account_scripts import helper_scripts
 from flask_backend.support_functions import routing, tokening, validating
 
 from flask_restful import Resource

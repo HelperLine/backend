@@ -1,6 +1,7 @@
 
 from flask_backend import app
-from flask_backend.database_scripts.call_scripts import call_scripts, enqueue, forwarding
+from flask_backend.database_scripts.call_scripts import call_scripts, forwarding
+from flask_backend.database_scripts.hotline_scripts import enqueue
 from flask_backend.support_functions import routing
 
 from flask_backend.backend_routes.hotline_translation import hotline_translation

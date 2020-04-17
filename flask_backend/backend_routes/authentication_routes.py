@@ -1,6 +1,6 @@
 
 from flask_backend import app
-from flask_backend.database_scripts.helper_scripts.api_authentication import helper_login_password, helper_login_api_key, helper_logout
+from flask_backend.database_scripts.account_scripts.api_authentication import helper_login_password, helper_login_api_key, helper_logout
 from flask_backend.database_scripts.admin_scripts.api_authentication import admin_login_password, admin_login_api_key, admin_logout
 from flask_backend.support_functions import routing, tokening, formatting
 

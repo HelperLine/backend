@@ -1,6 +1,6 @@
 
 from flask_backend import bcrypt, BCRYPT_SALT
-from flask_backend.database_scripts.helper_scripts import api_authentication as helper_scripts
+from flask_backend.database_scripts.account_scripts import api_authentication as helper_scripts
 from flask_backend.database_scripts.admin_scripts import api_authentication as admin_scripts
 from flask_backend.support_functions import formatting
 
