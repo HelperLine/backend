@@ -33,9 +33,9 @@ def admin_login_password(email, password):
     if admin_account is not None:
         if tokening.check_password(password, admin_account['hashed_password']):
             api_key = admin_create_new_api_key(email)
-            return formatting.status('ok', email=email, api_key=api_key), 200
+            return formatting.status('ok', email=email, api_key=api_key)
 
-    return formatting.status('email/password invalid'), 401
+    return formatting.status('email/password invalid')
 
 
 def admin_login_api_key(email, api_key, new_api_key=False):
@@ -45,9 +45,9 @@ def admin_login_api_key(email, api_key, new_api_key=False):
         if api_key == admin_api_key['api_key']:
             if new_api_key:
                 api_key = admin_create_new_api_key(email)
-            return formatting.status('ok', email=email, api_key=api_key), 200
+            return formatting.status('ok', email=email, api_key=api_key)
 
-    return formatting.status('email/api_key invalid'), 401
+    return formatting.status('email/api_key invalid')
 
 
 def admin_logout(email, api_key):
@@ -55,4 +55,4 @@ def admin_logout(email, api_key):
     if api_key == helper_api_key['api_key']:
         admin_delete_api_key(email)
 
-    return formatting.status('ok'), 200
+    return formatting.status('ok')

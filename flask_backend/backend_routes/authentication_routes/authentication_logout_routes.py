@@ -17,19 +17,21 @@ def route_authentication_logout(api_version, account_type):
         if account_type == "helper":
             authentication_result = tokening.check_helper_api_key(params_dict)
             if authentication_result["status"] != "ok":
-                return authentication_result
+                return formatting.postprocess_response(authentication_result)
 
-            return helper_logout(params_dict['email'], params_dict['api_key'])
+            # Route will always return {"status": "ok"}
+            return helper_logout(params_dict['email'], params_dict['api_key']), 200
 
         elif account_type == "admin":
             authentication_result = tokening.check_admin_api_key(params_dict)
             if tokening.check_admin_api_key(params_dict)["status"] != "ok":
-                return authentication_result
+                return formatting.postprocess_response(authentication_result)
 
-            return admin_logout(params_dict['email'], params_dict['api_key'])
+            # Route will always return {"status": "ok"}
+            return admin_logout(params_dict['email'], params_dict['api_key']), 200
 
         else:
-            return formatting.status("account_type invalid")
+            return formatting.status("account_type invalid"), 400
     else:
         # Programming Error
-        return formatting.status("api_version invalid")
+        return formatting.status("api_version invalid"), 400

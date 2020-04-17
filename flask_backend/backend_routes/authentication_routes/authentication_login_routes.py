@@ -26,27 +26,31 @@ def route_authentication_login(api_version, account_type):
 
             # Initial login
             if email is not None and password is not None:
-                return helper_login_password(email, password)
+                login_result = helper_login_password(email, password)
+                return formatting.postprocess_response(login_result)
 
             # Automatic re-login from webapp
             elif email is not None and api_key is not None:
-                return helper_login_api_key(email, api_key)
+                login_result = helper_login_api_key(email, api_key)
+                return formatting.postprocess_response(login_result)
 
         elif account_type == "admin":
 
             # initial login
             if email is not None and password is not None:
-                return admin_login_password(email, password)
+                login_result = admin_login_password(email, password)
+                return formatting.postprocess_response(login_result)
 
             # automatic re-login from webapp
             elif email is not None and api_key is not None:
-                return admin_login_api_key(email, api_key)
+                login_result = admin_login_api_key(email, api_key)
+                return formatting.postprocess_response(login_result)
 
         else:
-            return formatting.status("account_type invalid")
+            return formatting.status("account_type invalid"), 400
 
-        return formatting.status('email/password/api_key missing')
+        return formatting.status('email/password/api_key missing'), 400
 
     else:
         # Programming Error
-        return formatting.status("api_version invalid")
+        return formatting.status("api_version invalid"), 400

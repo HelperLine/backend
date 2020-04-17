@@ -10,7 +10,7 @@ def route_index():
            "<br/><br/>" \
            "See <a href='https://helperline.io/' target='_blank'>helperline.io</a> for more." \
            "<br/><br/>" \
-           "See the API documentation <a href='/v1/docs' target='_blank'>here</a>.</p>"
+           "See the API documentation <a href='/v1/docs' target='_blank'>here</a>.</p>", 200
 
 
 
@@ -18,7 +18,7 @@ def route_index():
 def route_docs(api_version):
 
     if api_version == "v1":
-        return redirect("https://app.swaggerhub.com/apis-docs/helperline/backend/1.0")
+        return redirect("https://app.swaggerhub.com/apis-docs/helperline/backend/1.0"), 302
 
     else:
-        return formatting.status("api_version invalid")
+        return formatting.status("api_version invalid"), 400

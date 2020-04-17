@@ -9,13 +9,13 @@ import time
 from datetime import timezone, timedelta
 
 
-def get_account(email, new_api_key):
+def get_account(email):
     helper_account = helper_accounts_collection.find_one({'email': email})
 
     if helper_account is None:
-        return formatting.server_error_helper_record, 500
+        return formatting.server_error_helper_record
 
-    return formatting.status("ok", new_api_key=new_api_key, account=helper_account['account']), 200
+    return formatting.status("ok", account=helper_account['account'])
 
 
 def create_account(params_dict):

@@ -1,4 +1,3 @@
-
 from flask_backend import app
 from flask_backend.database_scripts.account_scripts import account_scripts
 from flask_backend.database_scripts.call_scripts import call_scripts
@@ -17,30 +16,29 @@ def route_database_fetchall(api_version):
 
         authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
         if authentication_result["status"] != "ok":
-            return authentication_result
+            return formatting.postprocess_response(authentication_result)
 
-        email = params_dict['email']
-        new_api_key = authentication_result['api_key']
-
-        account_dict = account_scripts.get_account(email, new_api_key)
-        calls_dict = call_scripts.get_calls(email, new_api_key)
-        filter_dict = filter_scripts.get_filter(email, new_api_key)
-        forward_dict = forward_scripts.get_forward(email, new_api_key)
+        account_dict = account_scripts.get_account(params_dict['email'])
+        calls_dict = call_scripts.get_calls(params_dict['email'])
+        filter_dict = filter_scripts.get_filter(params_dict['email'])
+        forward_dict = forward_scripts.get_forward(params_dict['email'])
 
         for result_dict in [account_dict, calls_dict, filter_dict, forward_dict]:
             if result_dict["status"] != "ok":
-                return result_dict, 400
+                return formatting.postprocess_response(result_dict)
 
         performance_dict = performance_scripts.get_performance(account_dict["account"]["zip_code"])
 
-        return formatting.status("ok",
-                                 account=account_dict["account"],
-                                 calls=calls_dict["calls"],
-                                 filter=filter_dict["filter"],
-                                 forward=forward_dict["forward"],
-                                 performance=performance_dict["performance"]), 200
+        result_dict = formatting.status("ok",
+                                        account=account_dict["account"],
+                                        calls=calls_dict["calls"],
+                                        filter=filter_dict["filter"],
+                                        forward=forward_dict["forward"],
+                                        performance=performance_dict["performance"])
+        return formatting.postprocess_response(result_dict, new_api_key=authentication_result['api_key'])
+
     else:
-        return formatting.status("api_version invalid")
+        return formatting.status("api_version invalid"), 400
 
 
 @app.route('/<api_version>/database/performance/<zip_code>', methods=["GET"])
@@ -49,4 +47,4 @@ def route_database_performance(api_version, zip_code):
         performance_dict = performance_scripts.get_performance(zip_code)
         return formatting.status("ok", performance=performance_dict["performance"]), 200
     else:
-        return formatting.status("api_version invalid")
+        return formatting.status("api_version invalid"), 400

@@ -10,7 +10,7 @@ from datetime import datetime, timezone, timedelta
 # These scripts will just be used internally!
 
 
-def get_calls(email, new_api_key):
+def get_calls(email):
     helper_account = helper_accounts_collection.find_one({'email': email})
 
     if helper_account is None:
@@ -72,7 +72,7 @@ def get_calls(email, new_api_key):
         'fulfilled': fulfilled_calls_list,
     }
 
-    return formatting.status("ok", new_api_key=new_api_key, calls=calls_result)
+    return formatting.status("ok", calls=calls_result)
 
 
 def accept_call(params_dict):

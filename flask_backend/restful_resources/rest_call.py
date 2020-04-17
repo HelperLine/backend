@@ -1,6 +1,6 @@
 
 from flask_backend.database_scripts.call_scripts import call_scripts
-from flask_backend.support_functions import routing, tokening, validating
+from flask_backend.support_functions import routing, tokening, validating, formatting
 
 from flask_restful import Resource
 from flask import request
@@ -17,9 +17,10 @@ class RESTCall(Resource):
 
         authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
         if authentication_result["status"] != "ok":
-            return authentication_result
+            return formatting.postprocess_response(authentication_result)
 
-        return call_scripts.get_calls(params_dict['email'], authentication_result['api_key'])
+        result_dict = call_scripts.get_calls(params_dict['email'])
+        return formatting.postprocess_response(result_dict, new_api_key=authentication_result["api_key"])
 
     def post(self):
         # Accept call
@@ -28,13 +29,14 @@ class RESTCall(Resource):
 
         authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
-            return authentication_result
+            return formatting.postprocess_response(authentication_result)
 
         validation_result = validating.validate_filter(params_dict)
         if validation_result["status"] != "ok":
-            return validation_result
+            return formatting.postprocess_response(validation_result)
 
-        return call_scripts.accept_call(params_dict)
+        result_dict = call_scripts.accept_call(params_dict)
+        return formatting.postprocess_response(result_dict)
 
     def put(self):
 
@@ -44,10 +46,11 @@ class RESTCall(Resource):
 
         authentication_result = tokening.check_helper_api_key(params_dict)
         if authentication_result["status"] != "ok":
-            return authentication_result
+            return formatting.postprocess_response(authentication_result)
 
         validation_result = validating.validate_edit_call(params_dict)
         if validation_result["status"] != "ok":
-            return validation_result
+            return formatting.postprocess_response(validation_result)
 
-        return call_scripts.modify_call(params_dict)
+        result_dict = call_scripts.modify_call(params_dict)
+        return formatting.postprocess_response(result_dict)
