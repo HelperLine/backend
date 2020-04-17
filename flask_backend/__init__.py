@@ -42,26 +42,24 @@ FRONTEND_URL = os.getenv('FRONTEND_URL')
 # Connect to database and collections
 client = MongoClient(MONGODB_WRITE_CONNECTION_STRING)
 
-account_database = client.get_database('account_database')
-admin_accounts_collection = account_database['admin_accounts']
-helper_accounts_collection = account_database['helper_accounts']
+admin_database = client.get_database('admin_database')
+admin_accounts_collection = admin_database['accounts']
+admin_api_keys_collection = admin_database['api_keys']
+
+helper_database = client.get_database('helper_database')
+helper_accounts_collection = helper_database['accounts']
+helper_api_keys_collection = helper_database['api_keys']
+email_tokens_collection = helper_database['email_tokens']
+phone_tokens_collection = helper_database['phone_tokens']
+helper_behavior_collection = helper_database['behavior']
 
 call_database = client.get_database('call_database')
 calls_collection = call_database['calls']
-caller_accounts_collection = call_database['caller_accounts']
-helper_behavior_collection = call_database['helper_behavior']
+caller_accounts_collection = call_database['callers']
+call_queue = call_database['queue']
 
 zip_code_dataset = client.get_database('zip_code_dataset')
 zip_codes_collection = zip_code_dataset['zip_codes_germany']
-
-token_database = client.get_database('token_database')
-helper_api_keys_collection = token_database['helper_api_keys']
-admin_api_keys_collection = token_database['admin_api_keys']
-email_tokens_collection = token_database['email_tokens']
-phone_tokens_collection = token_database['phone_tokens']
-
-queue_database = client.get_database('queue_database')
-call_queue = queue_database['call_queue']
 
 
 
