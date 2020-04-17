@@ -7,10 +7,9 @@
 service-account.json
 
 /requirements.txt
-
-.DS_Store
 __pycache__
 
+.idea
 
 
 

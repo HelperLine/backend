@@ -1,0 +1,1186 @@
+openapi: 3.0.0
+
+info:
+  description: Documentation of the full HelperLine API
+  version: "1.0"
+  title: HelperLine Backend
+  contact:
+    email: info@helperline.io
+  license:
+    name: MIT
+    url: 'https://github.com/HelperLine/backend/blob/master/LICENSE'
+
+servers:
+  - url: 'https://helperline-backend.ey.r.appspot.com/v1'
+
+tags:
+  - name: hotline
+    description: Routes for the hotline
+      <br/> <em>(Hook used by Twilio)</em>
+  - name: authentication
+    description: Login/Logout operations
+      <br/> <em>(Fetching and deauthenticating email/api_key pairs)</em>
+  - name: database
+    description: Database operations with helper and call records
+      <br/> <em>(Only possible with valid email/api_key pair)</em>
+  - name: settings
+    description: All settings for call filters and forwarding with or without scheduling
+      <br/> <em>(Only possible with valid email/api_key pair)</em>
+  - name: verification
+    description: Verification routes
+      <br/> <em>(Email and phone verification)</em>
+
+
+
+
+
+
+
+
+
+
+paths:
+
+  /hotline:
+    post:
+      description: Initial hotline request - Which language?
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /hotline/{language}/question1:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+    post:
+      description: First question - local request or independent of location?
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /hotline/{language}/question2:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+    post:
+      description: Only if request is local - your zip code?
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /hotline/{language}/question3/{call_id}:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      description: Can we ask you for feedback afterwards?
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /hotline/{language}/question4/{call_id}:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      description: Confirm or cancel your request.
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /hotline/{language}/forward1/{call_id}:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      description: Backend tries to forward call to helper.
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /hotline/{language}/forward2/{call_id}:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      description: Only used in case a forward happened (successful or not)
+      tags:
+      - hotline
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+
+
+
+
+
+
+
+
+
+  /authentication/login/{accountType}:
+    post:
+      tags:
+        - authentication
+      parameters:
+        - name: accountType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [helper, admin]
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                api_key:
+                  type: string
+              required:
+                - email
+
+            examples:
+              password:
+                summary: Login with Email and Password
+                value:
+                  email: name@example.com
+                  password: etzsbw...
+              api_key:
+                summary: Login with Email and API Key
+                value:
+                  email: name@example.com
+                  api_key: 27sbqi19W...
+
+      responses:
+        '200':
+          description: Successful authentication (Currently the api_key sent back is the same as the one provided, we will change that with the real launch)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  api_key:
+                    type: string
+                example:
+                  status: ok
+                  api_key: 27sbqi19W...
+
+        '401':
+          description: Unsuccessful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: email/password/api_key invalid
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: email/password/api_key missing
+
+  /authentication/logout/{accountType}:
+    post:
+      tags:
+        - authentication
+      parameters:
+        - name: accountType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [helper, admin]
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequired'
+
+      responses:
+        '200':
+          description: Successful authentication. This API Key is no longer valid and the client has to log in with a valid password to get a new one.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusOk'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+
+
+
+
+
+
+
+
+  /database/helper:
+    get:
+      description: Fetch the data of one helper account
+      tags:
+        - database
+
+      parameters:
+        - $ref: '#/components/parameters/emailParam'
+        - $ref: '#/components/parameters/apiKeyParam'
+
+      responses:
+        '200':
+          description: Success, returning account data for one helper - a new API Key is being generated since parameters of GET requests are not very safe and not encrypted such as a POST/PUT/ request body or a response body
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StatusOk'
+                  - $ref: '#/components/schemas/NewAPIKey'
+                  - $ref: '#/components/schemas/HelperData'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      description: Create a new helper
+      tags:
+        - database
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewHelperData'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/LoginResponseCreate'
+        '400':
+          $ref: '#/components/responses/BadPOSTFormValues'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      description: Modify an existing helper
+      tags:
+        - database
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthRequired'
+                - $ref: '#/components/schemas/EditHelperData'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Successful'
+        '400':
+          $ref: '#/components/responses/BadPUTFormValues'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /database/call:
+    get:
+      description: Accept a new call
+      tags:
+        - database
+
+      parameters:
+        - $ref: '#/components/parameters/emailParam'
+        - $ref: '#/components/parameters/apiKeyParam'
+
+      responses:
+        '200':
+          description: Success, returning all calls for one helper - a new API Key is being generated since parameters of GET requests are not very safe and not encrypted such as a POST/PUT request body or a response body
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StatusOk'
+                  - $ref: '#/components/schemas/NewAPIKey'
+                  - $ref: '#/components/schemas/CallData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      description: Accept a new call
+      tags:
+        - database
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Successful'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      description: Modify an accepted call
+      tags:
+        - database
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthRequired'
+                - type: object
+                  properties:
+                    call_id:
+                      type: integer
+                    action:
+                      type: string
+                    comment:
+                      type: string
+            examples:
+              reject call:
+                description: Remove all relations between the helper and the call and enqueue the call again
+                value:
+                  email: name@example.com
+                  api_key: 27sbqi19W...
+                  call_id: 123
+                  action: reject
+              fulfill call:
+                description: Set call status to "fulfilled"
+                value:
+                  email: name@example.com
+                  api_key: 27sbqi19W...
+                  call_id: 123
+                  action: fulfill
+              comment on call:
+                description: Update the comment saved in the call record
+                value:
+                  email: name@example.com
+                  api_key: 27sbqi19W...
+                  call_id: 123
+                  action: comment
+                  comment: example text ...
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Successful'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /database/fetchall:
+    get:
+      description: Create a new helper
+      tags:
+        - database
+
+      parameters:
+        - $ref: '#/components/parameters/emailParam'
+        - $ref: '#/components/parameters/apiKeyParam'
+
+      responses:
+        '200':
+          description: Success, returning all data that the frontend needs - a new API Key is being generated since parameters of GET requests are not very safe and not encrypted such as a POST/PUT/ request body or a response body
+          content:
+             application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StatusOk'
+                  - $ref: '#/components/schemas/NewAPIKey'
+                  - $ref: '#/components/schemas/HelperData'
+                  - $ref: '#/components/schemas/FilterData'
+                  - $ref: '#/components/schemas/ForwardData'
+                  - $ref: '#/components/schemas/CallData'
+                  - $ref: '#/components/schemas/PerformanceData'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /database/performance/{zip_code}:
+    get:
+      description: Get performance data for an
+      tags:
+        - database
+
+      parameters:
+        - $ref: '#/components/parameters/zipCodeParam'
+
+      responses:
+        '200':
+          description: Success!
+          content:
+             application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StatusOk'
+                  - $ref: '#/components/schemas/PerformanceData'
+
+
+
+
+
+
+
+
+
+
+  /settings/filter:
+    get:
+      description: Fetching a helpers filter settings
+      tags:
+        - settings
+
+      parameters:
+        - $ref: '#/components/parameters/emailParam'
+        - $ref: '#/components/parameters/apiKeyParam'
+
+      responses:
+        '200':
+          description: Success, returning all filter settings for one helper - Returning all data related to the helper account - a new API Key is being generated since parameters of GET requests are not very safe and not encrypted such as a POST/PUT/ request body or a response body
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StatusOk'
+                  - $ref: '#/components/schemas/NewAPIKey'
+                  - $ref: '#/components/schemas/FilterData'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      description: Modifying a helpers filter settings
+      tags:
+        - settings
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthRequired'
+                - $ref: '#/components/schemas/FilterData'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Successful'
+        '400':
+          description: Missing parameters
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AuthRequired'
+                  - $ref: '#/components/schemas/FilterData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /settings/forward:
+    get:
+      description: Fetching a helpers forward settings
+      tags:
+        - settings
+
+      parameters:
+        - $ref: '#/components/parameters/emailParam'
+        - $ref: '#/components/parameters/apiKeyParam'
+
+      responses:
+        '200':
+          description: Success, returning all forward settings for one helper - a new API Key is being generated since parameters of GET requests are not very safe and not encrypted such as a POST/PUT/ request body or a response body
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StatusOk'
+                  - $ref: '#/components/schemas/NewAPIKey'
+                  - $ref: '#/components/schemas/ForwardData'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      description: Modifying a helpers forward settings
+      tags:
+        - settings
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthRequired'
+                - $ref: '#/components/schemas/ForwardData'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Successful'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+
+
+
+
+
+
+  /verification/email/verify/{emailToken}:
+    post:
+      description: Verify an email address
+      tags:
+        - verification
+
+      parameters:
+        - name: emailToken
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 27sbqi19W...
+
+      responses:
+        '301':
+          description: Redirect to 'https://helperline.io/calls'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /verification/email/resend:
+    post:
+      description: Verify an email address
+      tags:
+        - verification
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequired'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Successful'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+
+
+
+  /verification/phone/hotline:
+    post:
+      description: Choose langauge for phone number code verification
+      tags:
+        - verification
+
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+  /verification/phone/hotline/{language}:
+    parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [de, en-gb]
+
+    post:
+      description: Enter code to verify the phone number you are calling from
+      tags:
+        - verification
+
+      responses:
+        '200':
+          description: TwiML Response (https://www.twilio.com/docs/voice/twiml)
+
+
+
+
+
+  /verification/phone/form/trigger:
+    post:
+      description: Fetch a token for the phone number verification
+      tags:
+        - verification
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequired'
+
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                status: ok
+                token: 27sbqi19W...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /verification/phone/form/fetch:
+    post:
+      description: Fetch the phone number associated with that token
+      tags:
+        - verification
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequired'
+
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                status: ok
+                phone_number: +4917254...
+        '400':
+          description: Bad Request (invalid form parameters)
+          content:
+            application/json:
+              examples:
+                authorization invalid:
+                  description: email/api_key missing
+                  value:
+                    status: email/api_key missing
+                no call received:
+                  description: The backend did not receive a call with this
+                  value:
+                    status: no call received
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /verification/phone/form/confirm:
+    post:
+      description: User sees confirms the number received from us
+      tags:
+        - verification
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequired'
+
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                status: ok
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+
+
+
+
+
+
+
+
+
+components:
+
+  responses:
+
+    Successful:
+      description: Successful
+      content:
+        application/json:
+          example:
+            status: ok
+
+    LoginResponse:
+      description: Successful authentication, logging in by creating an email/api_key record wich will be used for further authentication (Currently the api_key sent back is the same as the one provided, we will change that with the real launch)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              api_key:
+                type: string
+            example:
+              status: ok
+              api_key: 27sbqi19W...
+
+    LoginResponseCreate:
+      description: The account was created successfuly. The helper is begin logged in immediately and will therefore receive an api_key
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              api_key:
+                type: string
+            example:
+              status: ok
+              api_key: 27sbqi19W...
+
+    BadRequest:
+      description: Bad Request (invalid form parameters)
+      content:
+        application/json:
+          examples:
+            authorization invalid:
+              description: email/api_key missing
+              value:
+                status: email/api_key missing
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          example:
+            status: email/api_key invalid
+
+    BadPUTFormValues:
+      description: Bad Request (invalid form parameters)
+      content:
+        application/json:
+          examples:
+            authorization invalid:
+              description: Valid api_key needed in order to edit any data
+              value:
+                status: email/api_key missing
+            new email invalid:
+              description: Checking if the mail is in the format *@*.* each block at least of length 1. Whether the email address exists or not will not be checked.
+              value:
+                status: new_email format invalid
+            new email exists:
+              description: There is already some other account associated with this email address
+              value:
+                status: new_email already taken
+            new email verified:
+              description: Currently a user cannot change his email once he has verified it, if he really wants to do this we can still do this manually really fast (~1 min)
+              value:
+                status: email already verified
+            old password invalid:
+              description: Old password is not correct
+              value:
+                status: old_password invalid
+            new password format invalid:
+              description: At least 8 characters and at least one of each digits, uppercase and lowercase letters
+              value:
+                status: new_password format invalid
+            zip_code invalid:
+              description: Zip Code can only contain digits and must be of length 5
+              value:
+                status: zip_code format invalid
+            country invalid:
+              description: Currently only "Germany" or "Deutschland" are accepted
+              value:
+                status: country invalid
+
+    BadPOSTFormValues:
+      description: Bad Request (invalid form parameters)
+      content:
+        application/json:
+          examples:
+            email invalid:
+              description: Checking if the mail is in the format *@*.* each block at least of length 1. Whether the email address exists or not will not be checked.
+              value:
+                status: email format invalid
+            email exists:
+              description: There is already an account associated with this email address
+              value:
+                status: email already taken
+            password format invalid:
+              description: At least 8 characters and at least one of each digits, uppercase and lowercase letters
+              value:
+                status: password format invalid
+            zip_code invalid:
+              description: Zip Code can only contain digits and must be of length 5
+              value:
+                status: zip_code format invalid
+            country invalid:
+              description: Currently only "Germany" or "Deutschland" are accepted
+              value:
+                status: country invalid
+
+    FetchallResponse:
+      description: Successful
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PerformanceData'
+
+
+
+  schemas:
+
+    StatusOk:
+      type: object
+      properties:
+        status:
+          type: string
+      example:
+        status: ok
+
+    AuthRequired:
+      type: object
+      properties:
+        email:
+          type: string
+        api_key:
+          type: string
+      required:
+        - email
+        - api_key
+      example:
+        email: name@example.com
+        api_key: 27sbqi19W...
+
+    NewAPIKey:
+      type: object
+      properties:
+        new_api_key:
+          type: string
+      example:
+        new_api_key: 27sbqi19W...
+
+    HelperData:
+      type: object
+      properties:
+        helper:
+          type: object
+          properties:
+            email_verified:
+              type: boolean
+            phone_number:
+              type: string
+            phone_number_verified:
+              type: boolean
+            phone_number_confirmed:
+              type: boolean
+            zip_code:
+              type: string
+            country:
+              type: string
+      required:
+        - account
+      example:
+        helper:
+          email_verified: true
+          phone_number: +4917245...
+          phone_number_verified: true
+          phone_number_confirmed: true
+          zip_code: 12345
+          country: Germany
+
+    NewHelperData:
+      type: object
+      properties:
+        helper:
+          type: object
+          properties:
+            email:
+              type: string
+            zip_code:
+              type: string
+            country:
+              type: string
+            password:
+              type: string
+      required:
+        - helper
+
+      example:
+        helper:
+          email: "name@example.com"
+          zip_code: "12345"
+          country: "Germany"
+          password: "password123..."
+
+    EditHelperData:
+      type: object
+      properties:
+        helper:
+          type: object
+          properties:
+            new_email:
+              type: string
+              description: The email can only be changed if it has not been verified yet. If the email is changed the associated email/api_key pair also changes and all new request are authenticated only with the new email
+            zip_code:
+              type: string
+            country:
+              type: string
+            old_password:
+              type: string
+            new_password:
+              type: string
+      required:
+        - account
+
+      example:
+        helper:
+          new_email: "new_name@example.com"
+          zip_code: "12345"
+          country: "Germany"
+          old_password: "password123..."
+          new_password: "password456..."
+
+    ForwardData:
+      type: object
+      properties:
+        forward:
+          type: object
+          properties:
+            online:
+              type: boolean
+            schedule_active:
+              type: boolean
+            schedule:
+              type: array
+              items:
+                type: object
+                properties:
+                  from:
+                    type: integer
+                    description: Seconds from Monday Morning 00:00
+                  to:
+                    type: integer
+                    description: Seconds from Monday Morning 00:00
+      example:
+        forward:
+          online: true
+          schedule_active: false
+          schedule: []
+
+    FilterData:
+      type: object
+      properties:
+        filter:
+          type: object
+          properties:
+            only_local_calls:
+              type: boolean
+            only_global_calls:
+              type: boolean
+            accept_german:
+              type: boolean
+            accept_english:
+              type: boolean
+      example:
+        filter:
+          only_local_calls: false
+          only_global_calls: false
+          accept_german: true
+          accept_english: true
+
+    PerformanceData:
+      type: object
+      properties:
+        performance:
+          type: object
+          properties:
+            local_helpers:
+              type: integer
+            local_callers:
+              type: integer
+            local_fulfilled_calls:
+              type: integer
+      example:
+        performance:
+          local_helpers: 37
+          local_callers: 14
+          local_fulfilled_calls: 60
+
+    CallData:
+      type: object
+      properties:
+        calls:
+          type: object
+          properties:
+            accepted:
+              type: array
+              items:
+                $ref: '#/components/schemas/CallObject'
+
+            fulfilled:
+              type: array
+              items:
+                $ref: '#/components/schemas/CallObject'
+      example:
+        calls:
+          accepted: [{
+            call_id: 7,
+            status: "accepted",
+            call_type: ["local", "forwarded"],
+            timestamp_received: 1234567890,
+            timestamp_accepted: 1234567890,
+            timestamp_fulfilled: 1234567890,
+            comment: "example text....",
+            phone_number: "+4917056"
+          }]
+          fulfilled: [{
+            call_id: 9,
+            status: "fulfilled",
+            call_type: ["global", "accepted-match"],
+            timestamp_received: 1234567890,
+            timestamp_accepted: 1234567890,
+            timestamp_fulfilled: 1234567890,
+            comment: "example text....",
+            phone_number: "+4917056"
+          }]
+
+    CallObject:
+      type: object
+      properties:
+        call_id:
+          type: integer
+        status:
+          type: string
+        call_type:
+          type: array
+          items:
+            type: string
+        timestamp_received:
+          type: integer
+        timestamp_accepted:
+          type: integer
+        timestamp_fulfilled:
+          type: integer
+        comment:
+           type: string
+        phone_number:
+           type: string
+
+
+
+
+
+  parameters:
+
+    emailParam:
+      name: email
+      in: query
+      required: true
+      schema:
+        type: string
+        example: name@example.com
+
+    apiKeyParam:
+      name: api_key
+      in: query
+      required: true
+      schema:
+        type: string
+        example: 27sbqi19W...
+
+    zipCodeParam:
+      name: zip_code
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "12345"

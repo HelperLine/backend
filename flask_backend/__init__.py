@@ -77,6 +77,6 @@ bcrypt = Bcrypt(app)
 api = Api(app)
 
 
-from flask_backend.backend_routes import default_routes, hotline_routes, \
-    authentication_routes, database_routes, settings_routes, verification_routes
-
+from flask_backend.backend_routes import default_routes, authentication_routes, database_routes, settings_routes
+from flask_backend.backend_routes.hotline_routes import hotline, hotline_errors
+from flask_backend.backend_routes.verification_routes import email, phone_form, phone_hotline
