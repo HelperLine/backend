@@ -8,7 +8,7 @@ from pymongo import DeleteMany, InsertOne
 from bson import ObjectId
 
 
-def send_verification_mail(email, verification_token):
+def send(email, verification_token):
     message = Mail(
         from_email='verify@helperline.io',
         to_emails=email,
@@ -28,14 +28,14 @@ def send_verification_mail(email, verification_token):
         return formatting.status('email sending failed')
 
 
-def verify_email(verification_token):
+def verify(verification_token):
     record = email_tokens_collection.find_one({'token': verification_token})
     if record is not None:
         helper_accounts_collection.update_one({'_id': record['helper_id']}, {'$set': {'email_verified': True}})
         email_tokens_collection.delete_many({'helper_id': record['helper_id']})
 
 
-def trigger_email_verification(email):
+def trigger(email):
     # this function can be used for the initial send as well as resending
 
     helper_account = helper_accounts_collection.find_one({'email': email})
@@ -56,7 +56,7 @@ def trigger_email_verification(email):
     email_tokens_collection.bulk_write(operations, ordered=True)
 
     # Trigger token-email
-    return send_verification_mail(email, verification_token)
+    return send(email, verification_token)
 
 
 if __name__ == '__main__':

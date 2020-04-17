@@ -1,13 +1,12 @@
 
 from flask_backend import bcrypt, BCRYPT_SALT
-from flask_backend.database_scripts.account_scripts import api_authentication as helper_scripts
-from flask_backend.database_scripts.admin_scripts import api_authentication as admin_scripts
+from flask_backend.database_scripts.authentication_scripts import helper_authentication, admin_authentication
 from flask_backend.support_functions import formatting
 
 import random
 
 
-def generate_random_key(length=32, numeric=False):
+def generate_random_key(length=32, numeric=False, existing_tokens=()):
     possible_characters = []
 
     # Characters '0' through '9'
@@ -20,10 +19,14 @@ def generate_random_key(length=32, numeric=False):
         # Characters 'a' through 'z'
         possible_characters += [chr(x) for x in range(97, 123)]
 
-    random_key = ''
 
+    random_key = ''
     for i in range(length):
         random_key += random.choice(possible_characters)
+
+    # Brute force generate random keys as long as key is not unique
+    while random_key in existing_tokens:
+        random_key = random_key[1:] + random.choice(possible_characters)
 
     return random_key
 
@@ -41,7 +44,7 @@ def check_helper_api_key(params_dict, new_api_key=False):
     api_key = params_dict['api_key']
 
     if email is not None and api_key is not None:
-        return helper_scripts.helper_login_api_key(email, api_key, new_api_key=new_api_key)
+        return helper_authentication.helper_login_api_key(email, api_key, new_api_key=new_api_key)
     else:
         return formatting.status('email/api_key missing')
 
@@ -51,6 +54,6 @@ def check_admin_api_key(params_dict, new_api_key=False):
     api_key = params_dict['api_key']
 
     if email is not None and api_key is not None:
-        return admin_scripts.admin_login_api_key(email, api_key, new_api_key=new_api_key)
+        return admin_authentication.admin_login_api_key(email, api_key, new_api_key=new_api_key)
     else:
         return formatting.status('email/api_key missing')

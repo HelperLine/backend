@@ -1,5 +1,5 @@
 from flask_backend import helper_accounts_collection, email_tokens_collection
-from flask_backend.database_scripts.account_scripts import email_verification
+from flask_backend.database_scripts.verification_scripts import email_verification
 from flask_backend.database_scripts.authentication_scripts import helper_authentication
 from flask_backend.support_functions import tokening, formatting
 
@@ -72,7 +72,7 @@ def create_account(params_dict):
         return formatting.status('email already taken')
 
     # Send verification email and add verification record
-    email_verification.trigger_email_verification(email)
+    email_verification.trigger(email)
 
     # login and return email/api_key dict
     return helper_authentication.helper_login_password(email, password)
@@ -95,7 +95,7 @@ def modify_account(params_dict):
 
             # Send new verification email if new email valid
             email_tokens_collection.delete_one({'email': existing_document["email"]})
-            email_verification.trigger_email_verification(new_account["new_email"])
+            email_verification.trigger(new_account["new_email"])
             new_account.update({"email": new_account["new_email"]})
 
     # this does not raise errors if the key does not exist
