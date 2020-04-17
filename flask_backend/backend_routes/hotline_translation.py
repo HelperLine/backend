@@ -92,6 +92,11 @@ hotline_translation = {
         'en-gb': 'Invalid API version.',
     },
 
+    'error_message_language': {
+        'de': 'Ungültige Sprache.',
+        'en-gb': 'Invalid language.',
+    },
+
 
     'verification_enter_code': {
         'de': 'Bitte geben sie Ihren Sicherheitscode ein und bestätigen sie mit der Raute Taste.',
