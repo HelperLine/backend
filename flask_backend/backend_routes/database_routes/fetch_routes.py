@@ -2,13 +2,6 @@
 from flask_backend import app, api
 from flask_backend.support_functions import formatting
 
-from flask_backend.restful_resources.rest_account import RESTAccount
-from flask_backend.restful_resources.rest_call import RESTCall
-
-
-api.add_resource(RESTAccount, '/v1/database/account')
-api.add_resource(RESTCall, '/v1/database/call')
-
 
 @app.route('/<api_version>/database/fetchall', methods=["GET"])
 def route_database_fetchall(api_version):
