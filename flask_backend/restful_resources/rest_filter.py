@@ -3,6 +3,7 @@ from flask_backend.support_functions import routing, tokening, validating, forma
 
 from flask_restful import Resource
 from flask import request
+import os
 
 
 class RESTFilter(Resource):
@@ -10,7 +11,8 @@ class RESTFilter(Resource):
     def get(self):
         params_dict = routing.get_params_dict(request, print_out=True)
 
-        authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
+        authentication_result = tokening.check_helper_api_key(
+            params_dict, new_api_key=(os.getenv("ENVIRONMENT") == "production"))
         if authentication_result["status"] != "ok":
             return formatting.postprocess_response(authentication_result)
 

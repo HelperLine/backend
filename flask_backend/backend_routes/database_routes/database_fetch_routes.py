@@ -6,6 +6,7 @@ from flask_backend.database_scripts.performance_scripts import performance_scrip
 from flask_backend.support_functions import routing, formatting, tokening
 
 from flask import request
+import os
 
 
 @app.route('/<api_version>/database/fetchall', methods=["GET"])
@@ -14,7 +15,8 @@ def route_database_fetchall(api_version):
 
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
+        authentication_result = tokening.check_helper_api_key(
+            params_dict, new_api_key=(os.getenv("ENVIRONMENT") == "production"))
         if authentication_result["status"] != "ok":
             return formatting.postprocess_response(authentication_result)
 

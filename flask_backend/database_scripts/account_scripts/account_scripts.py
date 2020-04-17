@@ -10,7 +10,7 @@ from datetime import timezone, timedelta
 
 
 def get_account(email):
-    helper_account = helper_accounts_collection.find_one({'email': email})
+    helper_account = helper_accounts_collection.find_one({'email': email}, {'account.hashed_password': 0})
 
     if helper_account is None:
         return formatting.server_error_helper_record

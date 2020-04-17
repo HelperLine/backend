@@ -4,6 +4,7 @@ from flask_backend.support_functions import routing, tokening, validating, forma
 
 from flask_restful import Resource
 from flask import request
+import os
 
 
 class RESTCall(Resource):
@@ -15,7 +16,8 @@ class RESTCall(Resource):
         # Get all infos for a specific account
         params_dict = routing.get_params_dict(request)
 
-        authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
+        authentication_result = tokening.check_helper_api_key(
+            params_dict, new_api_key=(os.getenv("ENVIRONMENT") == "production"))
         if authentication_result["status"] != "ok":
             return formatting.postprocess_response(authentication_result)
 
