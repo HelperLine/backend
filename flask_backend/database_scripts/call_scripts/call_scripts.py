@@ -10,24 +10,20 @@ from datetime import datetime, timezone, timedelta
 # These scripts will just be used internally!
 
 def accept_call(params_dict):
-    # call_id and agent_id are assumed to be valid
+    # call_id and helper_id are assumed to be valid
 
     helper = helper_accounts_collection.find_one({'email': params_dict['email']})
 
     if helper is None:
-        return formatting.status('server error: helper record not found after successful authentication')
-
-    if 'filter_type_local' not in params_dict or 'filter_type_global' not in params_dict or \
-            'filter_language_german' not in params_dict or 'filter_language_english' not in params_dict:
-        return formatting.status('filter parameters missing')
+        return formatting.server_error_helper_record
 
     dequeue_result = dequeue.dequeue(
         str(helper['_id']),
-        zip_code=helper['zip_code'],
-        only_local_calls=params_dict['filter_type_local'],
-        only_global_calls=params_dict['filter_type_global'],
-        accept_german=params_dict['filter_language_german'],
-        accept_english=params_dict['filter_language_english']
+        zip_code=helper['account']['zip_code'],
+        only_local_calls=params_dict['filter']['call_type']['only_local'],
+        only_global_calls=params_dict['filter']['call_type']['only_global'],
+        accept_german=params_dict['filter']['language']['german'],
+        accept_english=params_dict['filter']['language']['english']
     )
 
     if dequeue_result['status'] != 'ok':
@@ -37,7 +33,40 @@ def accept_call(params_dict):
 
 
 def modify_call(params_dict):
-    pass
+
+    # Step 1) Check database correctness
+
+    helper = helper_accounts_collection.find_one({"email": params_dict["email"]})
+    if helper is None:
+        return formatting.server_error_helper_record
+
+    call = calls_collection.find_one({"_id": ObjectId(params_dict['call']["call_id"])})
+
+    if call is None:
+        return formatting.status("call_id invalid")
+
+
+
+    # Step 2) Check eligibility to modify this call
+
+    if str(call["helper_id"]) != str(helper["_id"]):
+        return formatting.status("not authorized to edit this call")
+
+    if (call["status"] == "fulfilled") and (params_dict['call']["action"] in ["reject", "fulfill"]):
+        return formatting.status('cannot change a fulfilled call')
+
+
+
+    # Step 2) Actually edit the call
+
+    if params_dict['call']["action"] == "fulfill":
+        fulfill_call(params_dict['call']["call_id"], helper["_id"])
+
+    elif params_dict['call']["action"] == "reject":
+        reject_call(params_dict['call']["call_id"], helper["_id"])
+
+    elif params_dict['call']["action"] == "comment":
+        comment_call(params_dict['call']["call_id"], params_dict['call']["comment"])
 
     return formatting.status("ok")
 
