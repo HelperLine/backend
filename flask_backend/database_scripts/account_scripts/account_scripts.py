@@ -13,9 +13,9 @@ def get_account(email, new_api_key):
     helper_account = helper_accounts_collection.find_one({'email': email})
 
     if helper_account is None:
-        return formatting.status("server error: missing helper record after successful authentication")
+        return formatting.server_error_helper_record, 500
 
-    return formatting.status("ok", new_api_key=new_api_key, account=helper_account['account'])
+    return formatting.status("ok", new_api_key=new_api_key, account=helper_account['account']), 200
 
 
 def create_account(params_dict):
@@ -69,7 +69,7 @@ def create_account(params_dict):
         # If two people sign up exactla at once
         # (verfication done but inserting fails for one)
         print(f'DuplicateKeyError: {e}')
-        return formatting.status('email already taken')
+        return formatting.status('email already taken'), 400
 
     # Send verification email and add verification record
     email_verification.trigger(email)
@@ -91,7 +91,7 @@ def modify_account(params_dict):
     if 'new_email' in new_account:
         if (existing_document["email"] != new_account["email"]):
             if (existing_account['email_verified']):
-                return formatting.status('email already verified')
+                return formatting.status('email already verified'), 400
 
             # Send new verification email if new email valid
             email_tokens_collection.delete_one({'email': existing_document["email"]})
@@ -103,7 +103,7 @@ def modify_account(params_dict):
 
     if 'old_password' in new_account and 'new_password' in new_account:
         if not tokening.check_password(new_account['old_password'], existing_account['hashed_password']):
-            return formatting.status('old_password invalid')
+            return formatting.status('old_password invalid'), 400
         new_account.update({"hashed_password": tokening.hash_password(new_account['new_password'])})
 
     # these do not raise errors if any of these keys does not exist
@@ -118,7 +118,7 @@ def modify_account(params_dict):
         }}
     )
 
-    return formatting.status("ok")
+    return formatting.status("ok"), 200
 
 
 if __name__ == '__main__':

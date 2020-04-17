@@ -11,6 +11,16 @@ class RESTCall(Resource):
     # valid email/api_key pair must be provided! Otherwise private data might
     # leak to non-authorized entities
 
+    def get(self):
+        # Get all infos for a specific account
+        params_dict = routing.get_params_dict(request)
+
+        authentication_result = tokening.check_helper_api_key(params_dict, new_api_key=True)
+        if authentication_result["status"] != "ok":
+            return authentication_result
+
+        return call_scripts.get_calls(params_dict['email'], authentication_result['api_key'])
+
     def post(self):
         # Accept call
 

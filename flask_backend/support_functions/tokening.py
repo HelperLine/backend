@@ -46,7 +46,7 @@ def check_helper_api_key(params_dict, new_api_key=False):
     if email is not None and api_key is not None:
         return helper_authentication.helper_login_api_key(email, api_key, new_api_key=new_api_key)
     else:
-        return formatting.status('email/api_key missing')
+        return formatting.status('email/api_key missing'), 400
 
 
 def check_admin_api_key(params_dict, new_api_key=False):
@@ -56,4 +56,4 @@ def check_admin_api_key(params_dict, new_api_key=False):
     if email is not None and api_key is not None:
         return admin_authentication.admin_login_api_key(email, api_key, new_api_key=new_api_key)
     else:
-        return formatting.status('email/api_key missing')
+        return formatting.status('email/api_key missing'), 400

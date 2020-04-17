@@ -1,13 +1,79 @@
 from flask_backend import calls_collection, helper_behavior_collection, helper_accounts_collection
 from flask_backend.database_scripts.call_scripts import dequeue
 from flask_backend.database_scripts.hotline_scripts import enqueue
-from flask_backend.support_functions import fetching, formatting
+from flask_backend.support_functions import formatting, timing
 
 from bson.objectid import ObjectId
 from pymongo import UpdateOne
 from datetime import datetime, timezone, timedelta
 
 # These scripts will just be used internally!
+
+
+def get_calls(email, new_api_key):
+    helper_account = helper_accounts_collection.find_one({'email': email})
+
+    if helper_account is None:
+        return formatting.server_error_helper_record, 500
+
+    match_dict = {
+        'helper_id': ObjectId(helper_account['_id']),
+    }
+
+    lookup_dict = {
+        'from': 'callers',
+        'localField': 'caller_id',
+        'foreignField': '_id',
+        'as': 'caller'
+    }
+
+    project_dict = {
+        '_id': 1,
+        'status': 1,
+        'call_type': 1,
+
+        'timestamp_received': 1,
+        'timestamp_accepted': 1,
+        'timestamp_fulfilled': 1,
+
+        'comment': 1,
+
+        'caller': {
+            'phone_number': 1
+        }
+    }
+
+    raw_list = list(
+        calls_collection.aggregate([
+            {'$match': match_dict},
+            {'$lookup': lookup_dict},
+            {'$project': project_dict},
+        ]))
+
+    projected_list = [{
+        'call_id': str(call['_id']),
+        'status': call['status'],
+        'call_type': call['call_type'],
+        'timestamp_received': timing.datetime_to_string(call['timestamp_received']),
+        'timestamp_accepted': timing.datetime_to_string(call['timestamp_accepted']),
+        'timestamp_fulfilled': timing.datetime_to_string(call['timestamp_fulfilled']),
+        'comment': call['comment'],
+        'phone_number': call['caller'][0]['phone_number']
+    } for call in raw_list]
+
+    accepted_calls_list = list(filter(lambda x: x['status'] == 'accepted', projected_list))
+    accepted_calls_list.sort(key=(lambda x: x["timestamp_accepted"]), reverse=True)
+
+    fulfilled_calls_list = list(filter(lambda x: x['status'] == 'fulfilled', projected_list))
+    fulfilled_calls_list.sort(key=(lambda x: x["timestamp_fulfilled"]), reverse=True)
+
+    calls_result = {
+        'accepted': accepted_calls_list,
+        'fulfilled': fulfilled_calls_list,
+    }
+
+    return formatting.status("ok", new_api_key=new_api_key, calls=calls_result)
+
 
 def accept_call(params_dict):
     # call_id and helper_id are assumed to be valid
@@ -26,10 +92,7 @@ def accept_call(params_dict):
         accept_english=params_dict['filter']['language']['english']
     )
 
-    if dequeue_result['status'] != 'ok':
-        return dequeue_result
-    else:
-        return fetching.get_all_helper_data(email=params_dict['email'])
+    return dequeue_result
 
 
 def modify_call(params_dict):

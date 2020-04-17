@@ -1,5 +1,5 @@
 
-from flask_backend.database_scripts.account_scripts import helper_scripts
+from flask_backend.database_scripts.account_scripts import account_scripts
 from flask_backend.support_functions import routing, tokening, validating
 
 from flask_restful import Resource
@@ -19,7 +19,7 @@ class RESTAccount(Resource):
         if authentication_result["status"] != "ok":
             return authentication_result
 
-        return helper_scripts.get_account(params_dict['email'], authentication_result['api_key'])
+        return account_scripts.get_account(params_dict['email'], authentication_result['api_key'])
 
 
     def post(self):
@@ -30,7 +30,7 @@ class RESTAccount(Resource):
         if validation_result["status"] != "ok":
             return validation_result
 
-        return helper_scripts.create_account(params_dict)
+        return account_scripts.create_account(params_dict)
 
 
     def put(self):
@@ -45,4 +45,4 @@ class RESTAccount(Resource):
         if validation_result["status"] != "ok":
             return validation_result
 
-        return helper_scripts.modify_account(params_dict)
+        return account_scripts.modify_account(params_dict)
