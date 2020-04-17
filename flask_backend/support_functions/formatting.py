@@ -5,7 +5,7 @@ def status(text, **kwargs):
     return status_dict
 
 
-def status_code(status):
+def get_status_code(status):
     if status == "ok":
         return 200
 
@@ -18,9 +18,12 @@ def status_code(status):
     return 400
 
 def postprocess_response(response_dict, new_api_key=None):
-    status_code = response_dict["status"]
+    status_code = get_status_code(response_dict["status"])
     if status_code != 200:
-        return status(response_dict["status"]), status_code
+        result_dict = status(response_dict["status"])
+        if "errors" in response_dict:
+            result_dict.update({"errors": response_dict["errors"]})
+        return result_dict, status_code
 
     if new_api_key is not None:
         response_dict.update({"api_key": new_api_key})
