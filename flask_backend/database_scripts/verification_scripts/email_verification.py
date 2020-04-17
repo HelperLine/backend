@@ -9,13 +9,14 @@ from bson import ObjectId
 
 
 def send(email, verification_token):
+
+    verification_url = f"{BACKEND_URL}v1/verification/email/verify/{verification_token}"
     message = Mail(
         from_email='verify@helperline.io',
         to_emails=email,
         subject='Verify your account!',
         html_content=f'<h2>Welcome to HelperLine!</h2>' +
-                     f'<p>Please verify this email address: <a href=\'{BACKEND_URL}verification/v1' +
-                     f'/email/{verification_token}\'>Verification Link</a></p>' +
+                     f'<p>Please verify this email address: <a href=\'{verification_url}\'>Verification Link</a></p>' +
                      f'<p>If you have not signed up for our service, you can just ignore this email</p>' +
                      f'<p>Best,<br/>The HelperLine Team</p>'
     )
@@ -31,7 +32,12 @@ def send(email, verification_token):
 def verify(verification_token):
     record = email_tokens_collection.find_one({'token': verification_token})
     if record is not None:
-        helper_accounts_collection.update_one({'_id': record['helper_id']}, {'$set': {'email_verified': True}})
+        update_dict = {
+            '$set': {
+                'account.email_verified': True
+            }
+        }
+        helper_accounts_collection.update_one({'_id': record['helper_id']}, update_dict)
         email_tokens_collection.delete_many({'helper_id': record['helper_id']})
 
 
@@ -40,7 +46,7 @@ def trigger(email):
 
     helper_account = helper_accounts_collection.find_one({'email': email})
 
-    if helper_account['email_verified']:
+    if helper_account['account']['email_verified']:
         return formatting.status('email already verified')
 
     # Generate new token

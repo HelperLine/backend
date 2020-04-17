@@ -24,7 +24,7 @@ class RESTAccount(Resource):
 
     def post(self):
         # Create a new account
-        params_dict = routing.get_params_dict(request)
+        params_dict = routing.get_params_dict(request, print_out=True)
 
         validation_result = validating.validate_create_account(params_dict)
         if validation_result["status"] != "ok":

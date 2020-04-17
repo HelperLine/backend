@@ -13,10 +13,8 @@ from flask_backend.support_functions.formatting import status
 
 
 
-
 # Set correct SSL certificate
 os.environ['SSL_CERT_FILE'] = certifi.where()
-
 
 
 
@@ -36,6 +34,8 @@ SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 BACKEND_URL = os.getenv('BACKEND_URL')
 FRONTEND_URL = os.getenv('FRONTEND_URL')
 
+if os.getenv("ENVIRONMENT") != "production":
+    from flask_backend.secrets import MONGODB_WRITE_CONNECTION_STRING, BACKEND_URL, FRONTEND_URL
 
 
 
@@ -63,7 +63,6 @@ zip_codes_collection = zip_code_dataset['zip_codes_germany']
 
 
 
-
 app = Flask(__name__)
 
 # Cookies (e.g. user/admin login) are stored for 7 days
@@ -73,6 +72,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 cors = CORS(app)
 bcrypt = Bcrypt(app)
 api = Api(app)
+
 
 
 from flask_backend.backend_routes.default_routes import default_routes

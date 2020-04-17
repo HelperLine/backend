@@ -24,7 +24,7 @@ def route_helper_phone_trigger(api_version):
 
 
 @app.route('/<api_version>/phone/form/fetch', methods=['POST'])
-def route_helper_phone_confirm(api_version):
+def route_helper_phone_fetch(api_version):
 
     if api_version == "v1":
         params_dict = routing.get_params_dict(request)

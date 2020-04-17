@@ -34,8 +34,7 @@ def create_account(params_dict):
             'email_verified': False,
 
             'phone_number': '',
-            'phone_number_verified': False,  # Verfication from our side (Call and enter confirmation code)
-            'phone_number_confirmed': False,  # Confirmation from the volunteer ('Is this your phone number?')
+            'phone_number_verified': False,
 
             'hashed_password': tokening.hash_password(password),
             'zip_code': zip_code,
