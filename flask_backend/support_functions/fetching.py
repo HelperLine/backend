@@ -29,7 +29,7 @@ def get_all_helper_data(email=None, helper_id=None):
     }
 
     filters_dict = get_helper_filters_dict(helper_account)
-    calls_dict = get_helper_calls_dict(helper_account['_id'])
+    calls_dict = get_calls_dict(helper_account['_id'])
     performance_dict = get_helper_performance_dict(helper_account, calls_dict)
 
     return formatting.status('ok',
@@ -40,7 +40,7 @@ def get_all_helper_data(email=None, helper_id=None):
                              filters=filters_dict)
 
 
-def get_helper_calls_dict(helper_id):
+def get_calls_dict(helper_id):
     # every_call should have the field:
     # call_id, caller_id, phone_number, local, zip_code, formatting.status
     # timestamp_received, timestamp_accepted, (timestamp_fulfilled)
