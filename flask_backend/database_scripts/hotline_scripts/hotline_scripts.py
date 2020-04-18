@@ -1,8 +1,7 @@
 from flask_backend import caller_accounts_collection, calls_collection
-from flask_backend.support_functions import formatting
+from flask_backend.support_functions import formatting, timing
 
 from bson.objectid import ObjectId
-from datetime import datetime, timezone, timedelta
 
 # These scripts will just be used internally!
 
@@ -24,7 +23,8 @@ def add_caller(phone_number):
 
 def add_call(caller_id, language, call_type='', zip_code=''):
 
-    current_timestamp = datetime.now(timezone(timedelta(hours=2)))
+    current_timestamp = timing.get_current_time()
+
     # local is boolean
     new_call = {
         'caller_id': ObjectId(caller_id),

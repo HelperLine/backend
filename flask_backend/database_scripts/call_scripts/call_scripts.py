@@ -5,7 +5,6 @@ from flask_backend.support_functions import formatting, timing
 
 from bson.objectid import ObjectId
 from pymongo import UpdateOne
-from datetime import datetime, timezone, timedelta
 
 # These scripts will just be used internally!
 
@@ -86,10 +85,10 @@ def accept_call(params_dict):
     dequeue_result = dequeue.dequeue(
         str(helper['_id']),
         zip_code=helper['account']['zip_code'],
-        only_local_calls=params_dict['filter']['call_type']['only_local'],
-        only_global_calls=params_dict['filter']['call_type']['only_global'],
-        accept_german=params_dict['filter']['language']['german'],
-        accept_english=params_dict['filter']['language']['english']
+        only_local=params_dict['filter']['call_type']['only_local'],
+        only_global=params_dict['filter']['call_type']['only_global'],
+        german=params_dict['filter']['language']['german'],
+        english=params_dict['filter']['language']['english']
     )
 
     return dequeue_result
@@ -137,7 +136,7 @@ def modify_call(params_dict):
 def fulfill_call(call_id, helper_id):
     # call_id and agent_id are assumed to be valid
 
-    current_timestamp = datetime.now(timezone(timedelta(hours=2)))
+    current_timestamp = timing.get_current_time()
 
     # Change call formatting.status
     call_update = {
@@ -185,7 +184,7 @@ def reject_call(call_id, helper_id):
     new_behavior_log = {
         'helper_id': ObjectId(helper_id),
         'call_id': ObjectId(call_id),
-        'timestamp': datetime.now(timezone(timedelta(hours=2))),
+        'timestamp': timing.get_current_time(),
         'action': 'rejected',
     }
     helper_behavior_collection.insert_one(new_behavior_log)

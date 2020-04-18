@@ -1,4 +1,8 @@
 
+from flask_backend.support_functions import timing
+from datetime import datetime
+
+
 def status(text, **kwargs):
     status_dict = {'status': text}
     status_dict.update(kwargs)
@@ -28,7 +32,20 @@ def postprocess_response(response_dict, new_api_key=None):
     if new_api_key is not None:
         response_dict.update({"api_key": new_api_key})
 
-    return response_dict, status_code
+    return postprocess_datetime(response_dict), status_code
+
+def postprocess_datetime(struct):
+    if isinstance(struct, datetime):
+        return timing.datetime_to_string(struct)
+
+    elif isinstance(struct, list):
+        return [postprocess_datetime(element) for element in struct]
+
+    elif isinstance(struct, dict):
+        return {key: postprocess_datetime(struct[key]) for key in struct.keys()}
+
+    else:
+        return struct
 
 
 language_conversion = {

@@ -234,25 +234,25 @@ def test_dequeue_local():
 
     results += testing.check_queues(1, [A, C, G, F, E], [B, D, E, G], [D, E])
 
-    dequeue_1 = dequeue.dequeue(helper_id, only_local_calls=True)
+    dequeue_1 = dequeue.dequeue(helper_id, only_local=True)
     results += check_dequeue_result(2, E, dequeue_1)
     results += testing.check_queues(3, [A, C, G, F], [B, D, G], [D])
     results += check_helper_queue(4, [E], helper_id)
     results += check_call_record(5, E, helper_id)
 
-    dequeue_2 = dequeue.dequeue(helper_id, only_local_calls=True)
+    dequeue_2 = dequeue.dequeue(helper_id, only_local=True)
     results += check_dequeue_result(6, C, dequeue_2)
     results += testing.check_queues(7, [A, G, F], [B, D, G], [D])
     results += check_helper_queue(8, [E, C], helper_id)
     results += check_call_record(9, C, helper_id)
 
-    dequeue_3 = dequeue.dequeue(helper_id, only_local_calls=True)
+    dequeue_3 = dequeue.dequeue(helper_id, only_local=True)
     results += check_dequeue_result(10, A, dequeue_3)
     results += testing.check_queues(11, [G, F], [B, D, G], [D])
     results += check_helper_queue(12, [E, C, A], helper_id)
     results += check_call_record(13, A, helper_id)
 
-    dequeue_4 = dequeue.dequeue(helper_id, only_local_calls=True)
+    dequeue_4 = dequeue.dequeue(helper_id, only_local=True)
     dequeue_4_result = {
         'name': 'Test 14',
         'result': dequeue_4['status'] == 'currently no call available'
@@ -300,19 +300,19 @@ def test_dequeue_global():
 
     results += testing.check_queues(15, [A, C, G, F, E], [B, D, E, G], [D, E])
 
-    dequeue_1 = dequeue.dequeue(helper_id, only_global_calls=True)
+    dequeue_1 = dequeue.dequeue(helper_id, only_global=True)
     results += check_dequeue_result(16, D, dequeue_1)
     results += testing.check_queues(17, [A, C, G, F, E], [B, E, G], [E])
     results += check_helper_queue(18, [D], helper_id)
     results += check_call_record(19, D, helper_id)
 
-    dequeue_2 = dequeue.dequeue(helper_id, only_global_calls=True)
+    dequeue_2 = dequeue.dequeue(helper_id, only_global=True)
     results += check_dequeue_result(20, B, dequeue_2)
     results += testing.check_queues(21, [A, C, G, F, E], [E, G], [E])
     results += check_helper_queue(22, [D, B], helper_id)
     results += check_call_record(23, B, helper_id)
 
-    dequeue_3 = dequeue.dequeue(helper_id, only_global_calls=True)
+    dequeue_3 = dequeue.dequeue(helper_id, only_global=True)
     dequeue_3_result = {
         'name': 'Test 24',
         'result': dequeue_3['status'] == 'currently no call available'

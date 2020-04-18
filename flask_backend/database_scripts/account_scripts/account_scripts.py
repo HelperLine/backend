@@ -1,12 +1,10 @@
 from flask_backend import helper_accounts_collection, email_tokens_collection, helper_api_keys_collection
 from flask_backend.database_scripts.verification_scripts import email_verification
 from flask_backend.database_scripts.authentication_scripts import helper_authentication
-from flask_backend.support_functions import tokening, formatting
+from flask_backend.support_functions import tokening, formatting, timing
 
 from pymongo.errors import DuplicateKeyError
-import datetime
 import time
-from datetime import timezone, timedelta
 
 
 def get_account(email):
@@ -25,12 +23,12 @@ def create_account(params_dict):
     zip_code = params_dict["account"]["zip_code"]
     country = params_dict["account"]["country"]
 
-    current_timestamp = datetime.datetime.now(timezone(timedelta(hours=2)))
+    current_timestamp = timing.get_current_time()
     new_helper = {
         'email': email,
 
         'account': {
-            'register_date': current_timestamp.strftime('%d.%m.%y'),
+            'register_date': timing.datetime_to_string(current_timestamp),
             'email_verified': False,
 
             'phone_number': '',
@@ -42,7 +40,7 @@ def create_account(params_dict):
         },
 
         'filter': {
-            'type': {
+            'call_type': {
                 'only_local': False,
                 'only_global': False,
             },
@@ -54,10 +52,10 @@ def create_account(params_dict):
 
         'forward': {
             'online': False,
-            'last_switched_online': current_timestamp,
             'stay_online_after_call': False,
             'schedule_active': False,
-            'schedule': []
+            'schedule': [],
+            'last_modified': current_timestamp
         }
     }
 

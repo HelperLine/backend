@@ -23,7 +23,27 @@ def check_filter_language(field, language_dict, error):
         error(field, 'select at least one language')
 
 
-filter_schema = {
+edit_filter_schema = {
+    'call_type': {
+        'type': 'dict',
+        'required': True,
+        'schema': {
+            'only_local': {'type': 'boolean', 'required': True},
+            'only_global': {'type': 'boolean', 'required': True}
+        },
+        'check_with': check_filter_call_type,
+    },
+    'language': {
+        'type': 'dict',
+        'required': True,
+        'schema': {
+            'german': {'type': 'boolean', 'required': True},
+            'english': {'type': 'boolean', 'required': True}
+        },
+    },
+}
+
+accept_filter_schema = {
     'call_type': {
         'type': 'dict',
         'required': True,
@@ -208,17 +228,25 @@ def validate(filter_document, validator_object):
         return formatting.status('validation error', errors=validator_object.errors)
 
 
-filter_validator = Validator(filter_schema)
+accept_filter_validator = Validator(accept_filter_schema)
+edit_filter_validator = Validator(edit_filter_schema)
+
 forward_validator = Validator(forward_schema)
 create_account_validator = Validator(create_account_schema)
 edit_account_validator = Validator(edit_account_schema)
 edit_call_validator = Validator(edit_call_schema)
 
 
-def validate_filter(params_dict):
+def validate_accept_filter(params_dict):
     if "filter" not in params_dict:
         return formatting.status("filter missing")
-    return validate(params_dict["filter"], filter_validator)
+    return validate(params_dict["filter"], accept_filter_validator)
+
+
+def validate_edit_filter(params_dict):
+    if "filter" not in params_dict:
+        return formatting.status("filter missing")
+    return validate(params_dict["filter"], edit_filter_validator)
 
 
 def validate_forward(params_dict):
@@ -247,7 +275,7 @@ def validate_edit_call(params_dict):
 
 if __name__ == '__main__':
 
-    filter_example = {
+    edit_filter_example = {
         'call_type': {
             'only_local': True,
             'only_global': True,
@@ -257,7 +285,7 @@ if __name__ == '__main__':
             'english': False,
         },
     }
-    print(validate_filter({"filter": filter_example}))
+    print(validate_edit_filter({"filter": edit_filter_example}))
 
 
     forward_example = {

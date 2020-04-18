@@ -1,8 +1,7 @@
 
 from flask_backend import call_queue, helper_accounts_collection, helper_behavior_collection, calls_collection
-from flask_backend.support_functions import fetching, formatting
+from flask_backend.support_functions import fetching, formatting, timing
 
-from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from pymongo import UpdateOne
 
@@ -10,42 +9,38 @@ from pymongo import UpdateOne
 local_timeout_seconds = 15 * 60
 global_timeout_seconds = 45 * 60
 
-local_timeout_timedelta = timedelta(seconds=local_timeout_seconds)
-global_timeout_timedelta = timedelta(seconds=global_timeout_seconds)
-
-
 
 # triggered when user clicks 'accept call'
 # filter options passed as arguments!
 # formatting.status with call_id is begin returned
 
 def dequeue(helper_id, zip_code=None,
-            only_local_calls=None, only_global_calls=None,
-            accept_german=None, accept_english=None):
+            only_local=None, only_global=None,
+            german=None, english=None):
 
-    current_timestamp = datetime.now(timezone(timedelta(hours=2)))
+    current_timestamp = timing.get_current_time()
 
-    if only_local_calls and only_global_calls:
+    if only_local and only_global:
         return formatting.status('invalid function call - only_local = only_global = True')
 
 
 
     # Step 1) Find the helpers zip_code
 
-    if any([e is None] for e in [zip_code, only_local_calls, only_global_calls, accept_english, accept_german]) is None:
+    if any([e is None] for e in [zip_code, only_local, only_global, english, german]) is None:
         helper = helper_accounts_collection.find_one({'_id': ObjectId(helper_id)})
         if helper is None:
             return formatting.status('helper_id invalid')
 
         zip_code = helper['zip_code'] if (zip_code is None) else zip_code
-        only_local_calls = helper['filter_type_local'] if (only_local_calls is None) else only_local_calls
-        only_global_calls = helper['filter_type_global'] if (only_global_calls is None) else only_global_calls
-        accept_german = helper['filter_language_german'] if (accept_german is None) else accept_german
-        accept_english = helper['filter_language_english'] if (accept_english is None) else accept_english
+        only_local = helper['filter_type_local'] if (only_local is None) else only_local
+        only_global = helper['filter_type_global'] if (only_global is None) else only_global
+        german = helper['filter_language_german'] if (german is None) else german
+        english = helper['filter_language_english'] if (english is None) else english
 
     language_list = []
-    language_list += ['german'] if accept_german else []
-    language_list += ['english'] if accept_english else []
+    language_list += ['german'] if german else []
+    language_list += ['english'] if english else []
 
     zip_codes_list = fetching.get_adjacent_zip_codes(zip_code) if (zip_code != '') else []
 
@@ -55,26 +50,22 @@ def dequeue(helper_id, zip_code=None,
 
     # Step 2) Find Call
 
-    if only_local_calls:
-
+    if only_local:
         filter_dict = {
             'call_type': {"$elemMatch": {"$eq": 'local'}},
             'zip_code': {'$in': zip_codes_list},
             'language': {'$in': language_list}
         }
-
         call = call_queue.find_one_and_delete(
             filter_dict, projection_dict,
             sort=[('timestamp_received', 1)],
         )
 
-    elif only_global_calls:
-
+    elif only_global:
         filter_dict = {
             'call_type': {"$elemMatch": {"$eq": 'global'}},
             'language': {'$in': language_list}
         }
-
         call = call_queue.find_one_and_delete(
             filter_dict, projection_dict,
             sort=[('timestamp_received', 1)],
@@ -82,21 +73,23 @@ def dequeue(helper_id, zip_code=None,
 
     else:
         # 1. Urgent Queue
+        filter_dict = {
+            'timestamp_received': {
+                '$lt': timing.get_current_time(offset_seconds=-global_timeout_seconds)
+            }
+        }
         call = call_queue.find_one_and_delete(
-            {'timestamp_received': {'$lt': current_timestamp - global_timeout_timedelta}},
-            projection_dict,
+            filter_dict, projection_dict,
             sort=[('timestamp_received', 1)],
         )
 
         # 2. Local Queue
         if call is None:
-
             filter_dict = {
                 'call_type': {"$elemMatch": {"$eq": 'local'}},
                 'zip_code': {'$in': zip_codes_list},
                 'language': {'$in': language_list}
             }
-
             call = call_queue.find_one_and_delete(
                 filter_dict, projection_dict,
                 sort=[('timestamp_received', 1)],
@@ -106,12 +99,25 @@ def dequeue(helper_id, zip_code=None,
         if call is None:
             # Or chain needed so that calls in other regions which
             # are not in the global queue yet get assigned
+            filter_dict = {
+                '$or': [
+                    {
+                        'call_type': {
+                            "$elemMatch": {"$eq": 'local'}
+                        },
+                        'timestamp_received': {
+                            '$lt': timing.get_current_time(offset_seconds=-local_timeout_seconds)
+                        }
+                    },
+                    {
+                        'call_type': {
+                            "$elemMatch": {"$eq": 'global'}
+                        }
+                    }
+                ]
+            },
             call = call_queue.find_one_and_delete(
-                {'$or': [
-                    {'call_type': {"$elemMatch": {"$eq": 'local'}}, 'timestamp_received': {'$lt': current_timestamp - local_timeout_timedelta}},
-                    {'call_type': {"$elemMatch": {"$eq": 'global'}}}
-                ]},
-                projection_dict,
+                filter_dict, projection_dict,
                 sort=[('timestamp_received', 1)],
             )
 

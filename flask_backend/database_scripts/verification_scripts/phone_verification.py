@@ -1,8 +1,6 @@
 
 from flask_backend import helper_accounts_collection, phone_tokens_collection
-from flask_backend.support_functions import tokening, fetching, formatting, timing
-
-from datetime import datetime, timedelta, timezone
+from flask_backend.support_functions import tokening, formatting, timing
 
 
 def trigger(email):
@@ -27,7 +25,7 @@ def trigger(email):
     new_record = {
         'email': email,
         'token': token,
-        'timestamp_issued': datetime.now(timezone(timedelta(hours=2))),
+        'timestamp_issued': timing.get_current_time(),
         'phone_number': '',
     }
     phone_tokens_collection.insert_one(new_record)
@@ -39,7 +37,7 @@ def trigger(email):
 def verify(token, phone_number):
     record = phone_tokens_collection.find_one({
         'token': token,
-        'timestamp_issued': {'$gt': datetime.now(timezone(timedelta(hours=2))) - timedelta(minutes=3)},
+        'timestamp_issued': {'$gt': timing.get_current_time(offset_minutes=-3)},
     })
 
     if record is None:

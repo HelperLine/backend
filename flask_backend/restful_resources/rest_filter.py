@@ -27,7 +27,7 @@ class RESTFilter(Resource):
         if authentication_result["status"] != "ok":
             return formatting.postprocess_response(authentication_result)
 
-        validation_result = validating.validate_filter(params_dict)
+        validation_result = validating.validate_edit_filter(params_dict)
         if validation_result["status"] != "ok":
             return formatting.postprocess_response(validation_result)
 

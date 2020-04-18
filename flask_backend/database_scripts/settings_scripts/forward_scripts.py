@@ -1,8 +1,6 @@
 
 from flask_backend import helper_accounts_collection
-from flask_backend.support_functions import formatting
-
-from datetime import datetime, timezone, timedelta
+from flask_backend.support_functions import formatting, timing
 
 
 def get_forward(email):
@@ -19,8 +17,7 @@ def modify_forward(params_dict):
 
     # params_dict["forward"] has already been validated
 
-    if params_dict["forward"]["online"]:
-        params_dict["forward"].update({'last_switched_online': datetime.now(timezone(timedelta(hours=2)))})
+    params_dict["forward"].update({'last_modified': timing.get_current_time()})
 
     helper_accounts_collection.update_one(
         {'email': params_dict["email"]},
