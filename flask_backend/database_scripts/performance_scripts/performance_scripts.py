@@ -6,7 +6,11 @@ from flask_backend.support_functions import fetching
 def get_performance(zip_code):
     adjacent_zip_codes = fetching.get_adjacent_zip_codes(zip_code)
 
-    local_filter_dict = {
+    helpers_filter_dict = {
+        'account.zip_code': {'$in': adjacent_zip_codes}
+    }
+
+    callers_filter_dict = {
         'zip_code': {'$in': adjacent_zip_codes}
     }
 
@@ -18,8 +22,8 @@ def get_performance(zip_code):
 
     return {
         'performance': {
-            'helpers': int(helper_accounts_collection.count_documents(local_filter_dict)),
-            'callers': int(caller_accounts_collection.count_documents(local_filter_dict)),
+            'helpers': int(helper_accounts_collection.count_documents(helpers_filter_dict)),
+            'callers': int(caller_accounts_collection.count_documents(callers_filter_dict)),
             'calls': int(calls_collection.count_documents(calls_filter_dict)),
         }
     }
