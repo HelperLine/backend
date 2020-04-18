@@ -205,7 +205,7 @@ edit_account_schema = {
 
 edit_call_schema = {
     'call_id': {
-        'type': 'integer',
+        'type': 'string',
         'required': True,
     },
     'action': {

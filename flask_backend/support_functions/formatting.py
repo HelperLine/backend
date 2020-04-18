@@ -1,7 +1,7 @@
 
 from flask_backend.support_functions import timing
 from datetime import datetime
-
+from bson import ObjectId
 
 def status(text, **kwargs):
     status_dict = {'status': text}
@@ -32,17 +32,20 @@ def postprocess_response(response_dict, new_api_key=None):
     if new_api_key is not None:
         response_dict.update({"api_key": new_api_key})
 
-    return postprocess_datetime(response_dict), status_code
+    return postprocess_json_encoding(response_dict), status_code
 
-def postprocess_datetime(struct):
+def postprocess_json_encoding(struct):
     if isinstance(struct, datetime):
         return timing.datetime_to_string(struct)
 
+    if isinstance(struct, ObjectId):
+        return str(struct)
+
     elif isinstance(struct, list):
-        return [postprocess_datetime(element) for element in struct]
+        return [postprocess_json_encoding(element) for element in struct]
 
     elif isinstance(struct, dict):
-        return {key: postprocess_datetime(struct[key]) for key in struct.keys()}
+        return {key: postprocess_json_encoding(struct[key]) for key in struct.keys()}
 
     else:
         return struct
