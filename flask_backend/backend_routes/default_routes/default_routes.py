@@ -18,7 +18,7 @@ def route_index():
 def route_docs(api_version):
 
     if api_version == "v1":
-        return redirect("https://app.swaggerhub.com/apis-docs/helperline/backend/1.0"), 302
+        return redirect("https://app.swaggerhub.com/apis-docs/dostuffthatmatters/helperline-backend/1.0"), 302
 
     else:
         return formatting.status("api_version invalid"), 400
